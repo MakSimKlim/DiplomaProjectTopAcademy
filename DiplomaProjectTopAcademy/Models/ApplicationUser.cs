@@ -11,7 +11,7 @@ namespace DiplomaProjectTopAcademy.Models
         [Required]
         public string? LastName { get; set; }
         //[Required]
-        public int? UsernameChangeLimit { get; set; } = 10;
+        public int? UsernameChangeLimit { get; set; } = 10; // set number of username changes 
         //[Required]
         public byte[]? ProfilePicture { get; set; }
     }
