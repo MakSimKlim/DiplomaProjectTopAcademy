@@ -123,7 +123,26 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 MailAddress address = new MailAddress(Input.Email);
-                string userName = address.User;
+                //string userName = address.User;
+                string baseUserName = address.User;
+                string userName = baseUserName;
+                int counter = 1;
+
+                // 🔹 Проверяем, существует ли уже пользователь с таким email
+                var existingUserByEmail = await _userManager.FindByEmailAsync(Input.Email);
+                if (existingUserByEmail != null)
+                {
+                    ModelState.AddModelError(string.Empty, "User with this email is already registered.");
+                    return Page(); // Возвращаемся на страницу с ошибкой
+                }
+
+                // Проверяем уникальность имени (оптимизированный поиск)
+                while (await _userManager.FindByNameAsync(userName) != null)
+                {
+                    userName = $"{baseUserName}{counter}";
+                    counter++;
+                }
+
                 var user = new ApplicationUser
                 {
                     UserName = userName,
