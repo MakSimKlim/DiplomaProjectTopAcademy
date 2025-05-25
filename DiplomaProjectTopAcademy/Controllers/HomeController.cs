@@ -1,9 +1,11 @@
 using DiplomaProjectTopAcademy.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace DiplomaProjectTopAcademy.Controllers
 {
+    [Authorize(Roles = "SuperAdmin,Admin,Moderator,Basic")] // ¬се роли, кроме Inactive
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -15,6 +17,11 @@ namespace DiplomaProjectTopAcademy.Controllers
 
         public IActionResult Index()
         {
+            //защитита от случаев, когда пользователь вручную получит роль Inactive после авторизации
+            if (User.IsInRole("Inactive"))
+            {
+                return Forbid(); // »ли RedirectToAction("Blocked");
+            }
             return View();
         }
 
@@ -23,6 +30,7 @@ namespace DiplomaProjectTopAcademy.Controllers
             return View();
         }
 
+        [AllowAnonymous] // —траница ошибок доступна всем
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
