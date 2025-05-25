@@ -35,7 +35,7 @@ using (var scope = app.Services.CreateScope())
         await ContextSeed.SeedRolesAsync(userManager, roleManager);
 
         //Method connection to add superadmin user to database
-        //await ContextSeed.SeedSuperAdminAsync(userManager, roleManager);
+        await ContextSeed.SeedSuperAdminAsync(userManager, roleManager);
     }
     catch (Exception ex)
     {
