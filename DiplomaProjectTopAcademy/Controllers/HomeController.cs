@@ -5,7 +5,6 @@ using System.Diagnostics;
 
 namespace DiplomaProjectTopAcademy.Controllers
 {
-    [Authorize(Roles = "SuperAdmin,Admin,Moderator,Basic")] // ¬се роли, кроме Inactive
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -15,22 +14,34 @@ namespace DiplomaProjectTopAcademy.Controllers
             _logger = logger;
         }
 
+        // —тартова€ страница - доступна всем
+        [AllowAnonymous]
         public IActionResult Index()
         {
-            //защитита от случаев, когда пользователь вручную получит роль Inactive после авторизации
-            if (User.IsInRole("Inactive"))
+            // ƒополнительна€ проверка дл€ Inactive пользователей
+            if (User.Identity?.IsAuthenticated == true && User.IsInRole("Inactive"))
             {
                 return Forbid(); // »ли RedirectToAction("Blocked");
             }
             return View();
         }
 
+        // —траница "ќ нас"/"ѕолитика" - доступна всем
+        [AllowAnonymous]
         public IActionResult Privacy()
         {
             return View();
         }
 
-        [AllowAnonymous] // —траница ошибок доступна всем
+        // следующие страницы (actions) в контроллере будут доступны только дл€ авторизованных пользователей с определенными рол€ми (кроме Inactive)
+        [Authorize(Roles = "SuperAdmin,Admin,Moderator,Basic")]
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        // —траница ошибок - доступна всем
+        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
