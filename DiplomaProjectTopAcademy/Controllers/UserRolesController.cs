@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace DiplomaProjectTopAcademy.Controllers
 {
-    [Authorize(Roles = "SuperAdmin,Admin")] // Attribute restricting access to "UserRoles" for all users except SuperAdmin
+    [Authorize(Roles = "SuperAdmin,Admin")] // Attribute restricting access to "UserRoles" for all users except SuperAdmin,Admin
     public class UserRolesController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -37,6 +37,8 @@ namespace DiplomaProjectTopAcademy.Controllers
             }
             return View(userRolesViewModel);
         }
+        // Только SuperAdmin может управлять ролями
+        [Authorize(Roles = "SuperAdmin")] // Явное ограничение
         public async Task<IActionResult> Manage(string userId)
         {
             ViewBag.userId = userId;
@@ -73,6 +75,7 @@ namespace DiplomaProjectTopAcademy.Controllers
             return View(model);
         }
         [HttpPost]
+        [Authorize(Roles = "SuperAdmin")] // Только SuperAdmin может изменять роли
         public async Task<IActionResult> Manage(List<ManageUserRolesViewModel> model, string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -101,4 +104,4 @@ namespace DiplomaProjectTopAcademy.Controllers
         }
 
     }
-    }
+}

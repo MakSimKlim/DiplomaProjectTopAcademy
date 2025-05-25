@@ -9,6 +9,23 @@
     <link rel="stylesheet" href="~/DiplomaProjectTopAcademy.styles.css" asp-append-version="true" />
 </head>
 <body>
+
+    <!-- Блокировка для неактивных пользователей -->
+    <!-- дополнительно настроены стили css в wwwroot/css/site.css -->
+    @if (User.IsInRole("Inactive"))
+    {
+        <div class="inactive-overlay">
+            <div class="inactive-message alert alert-danger">
+                <h4>Ваш аккаунт деактивирован</h4>
+                <p>Доступ к системе ограничен. Обратитесь к администратору.</p>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")" method="post">
+                    <button type="submit" class="btn btn-sm btn-light">Выйти из системы</button>
+                </form>
+            </div>
+        </div>
+    }
+    <!---------------------------------------------->
+
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -25,13 +42,26 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        <!-- Buttons for SuperAdmin&Admin only-->
+                        @if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="RoleManager" asp-action="Index">Role Manager</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="UserRoles" asp-action="Index">User Roles</a>
+                            </li>
+                        }
+                        <!---------------------------------------------->
+
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
+    <!--<div class="container">-->
+    <div class="container @(User.IsInRole("Inactive") ? "inactive-user" : "")">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
@@ -39,12 +69,31 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - DiplomaProjectTopAcademy - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - Max Klimov IT Studio created - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @* <!-- Блокировка для неактивных пользователей --> *@
+    @* @if (User.IsInRole("Inactive")) *@
+    @* { *@
+    @* <script> *@
+    @* // Дополнительная блокировка на случай, если CSS не сработал *@
+    @* document.addEventListener('DOMContentLoaded', function () { *@
+    @* document.querySelectorAll('a, button, input, [href]').forEach(el => { *@
+    @* el.addEventListener('click', function (e) { *@
+    @* e.preventDefault(); *@
+    @* e.stopPropagation(); *@
+    @* return false; *@
+    @* }); *@
+    @* }); *@
+    @* }); *@
+    @* </script> *@
+    @* } *@
+    @* <!----------------------------------------------> *@
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
