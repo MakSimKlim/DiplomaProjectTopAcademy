@@ -161,8 +161,9 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-
-                    //await _userManager.AddToRoleAsync(user, Enums.Roles.Basic.ToString());//Add A Default Role to Newly Registered User
+                    //Add A Default Role to Newly Registered User - Inactive:
+                    await _userManager.AddToRoleAsync(user, Enums.Roles.Inactive.ToString());
+                    
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
