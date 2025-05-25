@@ -37,9 +37,68 @@ namespace DiplomaProjectTopAcademy.Controllers
             }
             return View(userRolesViewModel);
         }
+        public async Task<IActionResult> Manage(string userId)
+        {
+            ViewBag.userId = userId;
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
+                return View("NotFound");
+            }
+            ViewBag.UserName = user.UserName;
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Решение: Загружаем роли в память перед циклом
+            var roles = await _roleManager.Roles.ToListAsync(); // Материализация запроса
+            // Оптимизация: Получаем ВСЕ роли пользователя за один запрос
+            var userRoles = await _userManager.GetRolesAsync(user);
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            var model = new List<ManageUserRolesViewModel>(); // этот код не добавлялся для исправления ошибки
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////
+            foreach (var role in roles)
+            {
+                var userRolesViewModel = new ManageUserRolesViewModel
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name,
+                    //Проверяем роли без дополнительных запросов к БД
+                    Selected = userRoles.Contains(role.Name!)
+                };
+                model.Add(userRolesViewModel);
+            }
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
+            return View(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Manage(List<ManageUserRolesViewModel> model, string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return View();
+            }
+            var roles = await _userManager.GetRolesAsync(user);
+            var result = await _userManager.RemoveFromRolesAsync(user, roles);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Cannot remove user existing roles");
+                return View(model);
+            }
+            result = await _userManager.AddToRolesAsync(user, model.Where(x => x.Selected == true).Select(y => y.RoleName));
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Cannot add selected roles to user");
+                return View(model);
+            }
+            return RedirectToAction("Index");
+        }
         private async Task<List<string>> GetUserRoles(ApplicationUser user)
         {
             return new List<string>(await _userManager.GetRolesAsync(user));
         }
+
     }
-}
+    }
