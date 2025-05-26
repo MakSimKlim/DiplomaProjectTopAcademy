@@ -45,6 +45,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="HowItWorks">How It Works</a>
+                        </li>                        
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Slabs" asp-action="Privacy">Slabs</a>
                         </li>
                         <!-- Buttons for SuperAdmin&Admin only-->
                         @if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
