@@ -1,0 +1,89 @@
+﻿@{
+    ViewData["Title"] = "How It Works";
+}
+
+<div class="container">
+    <h1 class="display-4 mb-4">@ViewData["Title"]</h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="h4 mb-3 text-primary">Основные функции системы</h2>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="h5"><i class="fas fa-user-shield me-2"></i>Управление пользователями</h3>
+                            <ul>
+                                <li>Регистрация и аутентификация</li>
+                                <li>Ролевая модель доступа</li>
+                                <li>Управление профилями</li>
+                                <li>Независимая база данных пользователей</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="h5"><i class="fas fa-cogs me-2"></i>Техническая реализация</h3>
+                            <ul>
+                                <li>ASP.NET Core MVC</li>
+                                <li>Entity Framework Core</li>
+                                <li>Identity для аутентификации</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="h5"><i class="fas fa-cogs me-2"></i>Особенности основной логики приложения</h3>
+                            <ul>
+                                <li>Независимые индивидуальные базы данных для каждого из заказчиков</li>
+                                <li>Универсальность системы к сооружениям различного конструктива</li>
+                                <li>На данном этапе разработки: монолитные и сборные конструкции</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="h4 mb-3 text-primary">Пошаговое руководство</h2>
+            <div class="accordion" id="guideAccordion">
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            Регистрация нового пользователя
+                        </button>
+                    </h3>
+                    <div id="collapseOne" class="accordion-collapse collapse show">
+                        <div class="accordion-body">
+                            <ol>
+                                <li>Нажмите "Register" в навигационной панели</li>
+                                <li>Заполните обязательные поля</li>
+                                <li>Подтвердите email (если требуется)</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                <!-- Добавьте больше accordion-элементов по аналогии -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Эту секцию нужно добавить в header файла _Layout.cshtml для её рендеринга-->
+@section Styles {
+    <style>
+        .card {
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+}

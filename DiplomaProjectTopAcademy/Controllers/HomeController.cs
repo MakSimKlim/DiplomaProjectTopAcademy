@@ -26,9 +26,16 @@ namespace DiplomaProjectTopAcademy.Controllers
             return View();
         }
 
-        // Страница "О нас"/"Политика" - доступна всем
+        // Страница "Политика конфиденциальности" - доступна всем
         [AllowAnonymous]
         public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        // Страница "Как это работает" - доступна всем
+        [AllowAnonymous]
+        public IActionResult HowItWorks()
         {
             return View();
         }
