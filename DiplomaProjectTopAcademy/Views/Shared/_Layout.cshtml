@@ -47,7 +47,19 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="HowItWorks">How It Works</a>
                         </li>                        
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Slabs" asp-action="Privacy">Slabs</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Slabs" asp-action="Index">Slabs</a>
+                        </li>                        
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="ArmatureRods" asp-action="Index">ArmatureRods</a>
+                        </li>                        
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Concretes" asp-action="Index">Concretes</a>
+                        </li>                        
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Floors" asp-action="Index">Floors</a>
+                        </li>                        
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Projects" asp-action="Index">Projects</a>
                         </li>
                         <!-- Buttons for SuperAdmin&Admin only-->
                         @if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))

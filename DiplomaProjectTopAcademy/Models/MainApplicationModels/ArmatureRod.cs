@@ -1,0 +1,24 @@
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
+{
+    public class ArmatureRod
+    {
+        [Key]
+        public int IDArmatureRod { get; set; }
+        [Required]
+        public required int LengthInMillimeter { get; set; }
+        [Required]
+        [ForeignKey("Armature")]
+        public required int IDArmature { get; set; }
+        [Required]
+        [ForeignKey("ArmatureClass")]
+        public required int IDArmatureClass { get; set; }
+
+        //Navigation Properties
+        //public required Armature Armature { get; set; }
+        //public required ArmatureClass ArmatureClass { get; set; }
+    }
+}
