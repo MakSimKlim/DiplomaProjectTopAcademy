@@ -33,3 +33,4 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required ICollection<SlabsArmatureRodsRelation> SlabsArmatureRodsRelations { get; set; } // Связь многие ко многим через таблицу
     }
 }
+//
