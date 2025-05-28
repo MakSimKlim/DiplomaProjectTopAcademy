@@ -19,6 +19,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required decimal AbsoluteZeroMark { get; set; }
 
         //Navigation properties
+        [Required]
         public required ICollection<Floor> Floors { get; set; } // Один Section → много Floors
 
     }

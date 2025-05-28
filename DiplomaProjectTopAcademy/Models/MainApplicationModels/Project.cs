@@ -20,6 +20,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required DateTime issueDate { get; set; }
 
         //Navigation Properties
+        [Required]
         public required ICollection<Slab> Slabs { get; set; } // Один Project → много Slabs
 
     }
