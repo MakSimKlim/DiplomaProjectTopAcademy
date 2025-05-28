@@ -22,9 +22,9 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public byte[]? Image { get; set; }
 
         //Navigation Properties
-        public required Project Project { get; set; }
-        public required ICollection<SlabsFloorsRelation> SlabsFloorsRelations { get; set; } // Связь Slab ↔ Floors (многие ко многим через связь)
-        public required ICollection<SlabsConcretesRelation> SlabsConcretesRelations { get; set; } // Связь Slab ↔ Concretes (многие ко многим через связь)
-        public required ICollection<SlabsArmatureRodsRelation> SlabsArmatureRodsRelations { get; set; } // Связь Slab ↔ ArmatureRods (многие ко многим через связь)
+        public required Project Project { get; set; } // Один Slab → один Project
+        public required ICollection<SlabsFloorsRelation> SlabsFloorsRelations { get; set; } // Связь многие ко многим через таблицу
+        public required ICollection<SlabsConcretesRelation> SlabsConcretesRelations { get; set; } // Связь многие ко многим через таблицу
+        public required ICollection<SlabsArmatureRodsRelation> SlabsArmatureRodsRelations { get; set; } // Связь многие ко многим через таблицу
     }
 }

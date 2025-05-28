@@ -24,6 +24,6 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         [Required]
         public required ArmatureClass ArmatureClass { get; set; } // Один ArmatureRod → один ArmatureClass
         [Required]
-        public ICollection<SlabsArmatureRodsRelation> SlabsArmatureRodsRelations { get; set; }
+        public ICollection<SlabsArmatureRodsRelation> SlabsArmatureRodsRelations { get; set; } // Связь многие ко многим через таблицу
     }
 }
