@@ -5,18 +5,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
 {
-    public class Concrete
+    public class ArmatureClass
     {
         [Key]
-        public int IDConcrete { get; set; }
+        public int IDArmatureClass { get; set; }        
         [Required]
-        public required string ConcreteClass { get; set; }
+        public required string NameClass { get; set; }        
         [Required]
-        public required string ConcreteGrade { get; set; }
-        [Required]
-        public required decimal StrengthMPa { get; set; }
+        public required decimal FluidityYield { get; set; }
 
         //Navigation Properties
-
     }
 }

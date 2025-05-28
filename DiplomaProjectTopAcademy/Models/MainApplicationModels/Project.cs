@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
 {
@@ -15,5 +18,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         [Required]
         [DataType(DataType.Date)]
         public required DateTime issueDate { get; set; }
+
+        //Navigation Properties
     }
 }

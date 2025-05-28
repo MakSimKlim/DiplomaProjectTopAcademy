@@ -2,21 +2,18 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
 namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
 {
-    public class Concrete
+    public class SlabsConcretesRelation
     {
         [Key]
+        public int ID { get; set; }
+        [ForeignKey("Slab")]
+        public int IDSlab { get; set; }
+        [ForeignKey("Concrete")]
         public int IDConcrete { get; set; }
-        [Required]
-        public required string ConcreteClass { get; set; }
-        [Required]
-        public required string ConcreteGrade { get; set; }
-        [Required]
-        public required decimal StrengthMPa { get; set; }
 
-        //Navigation Properties
+        //Navigation properties
 
     }
 }

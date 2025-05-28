@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
@@ -18,5 +20,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         [Required]
         [ForeignKey("Section")]
         public required int IDSection { get; set; }
+
+        //Navigation Properties
     }
 }
