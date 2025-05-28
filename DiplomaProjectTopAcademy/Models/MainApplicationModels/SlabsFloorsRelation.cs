@@ -15,6 +15,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public int IDFloor { get; set; }
 
         //Navigation properties
-
+        public required Slab Slab { get; set; } // Один SlabsFloorsRelation → один Slab
+        public required Floor Floor { get; set; } // Один SlabsFloorsRelation → один Floor
     }
 }

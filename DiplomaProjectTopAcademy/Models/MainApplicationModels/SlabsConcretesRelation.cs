@@ -14,6 +14,8 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public int IDConcrete { get; set; }
 
         //Navigation properties
+        public required Slab Slab { get; set; } // Один SlabsConcretesRelation → один Slab
+        public required Concrete Concrete { get; set; } // Один SlabsConcretesRelation → один Concrete
 
     }
 }

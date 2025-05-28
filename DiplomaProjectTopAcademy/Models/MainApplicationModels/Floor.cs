@@ -22,5 +22,8 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required int IDSection { get; set; }
 
         //Navigation Properties
+        [Required]
+        public required Section Section { get; set; } // Один Floor → один Section
+        public required ICollection<SlabsFloorsRelation> SlabsFloorsRelations { get; set; } // Связь многие ко многим через таблицу
     }
 }

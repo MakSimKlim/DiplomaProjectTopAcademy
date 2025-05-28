@@ -17,5 +17,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required string WeightOf1Meter { get; set; }
 
         //Navigation properties
+        [Required]
+        public required ICollection<ArmatureRod> ArmatureRods { get; set; } // Один Armature → много ArmatureRods
     }
 }

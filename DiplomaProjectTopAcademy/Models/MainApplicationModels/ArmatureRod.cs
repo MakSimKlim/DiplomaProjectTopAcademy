@@ -19,7 +19,11 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required int IDArmatureClass { get; set; }
 
         //Navigation Properties
-        //public required Armature Armature { get; set; }
-        //public required ArmatureClass ArmatureClass { get; set; }
+        [Required]
+        public required Armature Armature { get; set; } // Один ArmatureRod → один Armature
+        [Required]
+        public required ArmatureClass ArmatureClass { get; set; } // Один ArmatureRod → один ArmatureClass
+        [Required]
+        public ICollection<SlabsArmatureRodsRelation> SlabsArmatureRodsRelations { get; set; }
     }
 }
