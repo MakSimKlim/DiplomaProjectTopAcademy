@@ -91,36 +91,60 @@ namespace DiplomaProjectTopAcademy.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IDSlab,Name,Scope,Thickness,ProjectSheet,IDProject,Image")] Slab slab)
+        public async Task<IActionResult> Edit(int id, [Bind("IDSlab,Name,Scope,Thickness,ProjectSheet,IDProject")] Slab slab, IFormFile imageFile)
         {
             if (id != slab.IDSlab)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            var existingSlab = await _context.Slabs.AsNoTracking().FirstOrDefaultAsync(s => s.IDSlab == id);
+            if (existingSlab == null)
             {
-                try
-                {
-                    _context.Update(slab);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!SlabExists(slab.IDSlab))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
-            ViewData["IDProject"] = new SelectList(_context.Set<Project>(), "IDProject", "Designation", slab.IDProject);
-            return View(slab);
+
+            // 🔹 **Добавленная проверка: передается ли файл?**
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                Console.WriteLine($"Файл загружен: {imageFile.FileName}, размер: {imageFile.Length} байт");
+
+                using (var ms = new MemoryStream())
+                {
+                    await imageFile.CopyToAsync(ms);
+                    slab.Image = ms.ToArray();
+                }
+            }
+            else
+            {
+                // Если файл не загружен, оставляем старое изображение
+                slab.Image = existingSlab.Image;
+                Console.WriteLine("Изображение не загружено, оставляем старое.");
+            }
+
+            try
+            {
+                _context.Update(slab);
+                _context.Entry(slab).Property(s => s.Image).IsModified = true; // ✅ Обновляем `Image`
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SlabExists(slab.IDSlab))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
         }
+
+
+
 
         // GET: Slabs/Delete/5
         public async Task<IActionResult> Delete(int? id)
