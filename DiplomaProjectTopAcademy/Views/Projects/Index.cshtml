@@ -1,0 +1,53 @@
+﻿@model IEnumerable<DiplomaProjectTopAcademy.Models.MainApplicationModels.Project>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Designation)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ProjectName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ChangeNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.issueDate)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Designation)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProjectName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ChangeNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.issueDate)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.IDProject">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.IDProject">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.IDProject">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

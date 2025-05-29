@@ -10,15 +10,11 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDProject { get; set; }
-        [Required]
-        public required string Designation { get; set; }
-        [Required]
-        public required string ProjectName { get; set; }
-        [Required]
-        public required decimal ChangeNumber { get; set; }
-        [Required]
+        public string? Designation { get; set; }
+        public string? ProjectName { get; set; }
+        public decimal? ChangeNumber { get; set; }
         [DataType(DataType.Date)]
-        public required DateTime issueDate { get; set; }
+        public DateTime? issueDate { get; set; }
 
         //Navigation Properties
         public ICollection<Slab>? Slabs { get; set; } // Один Project → много Slabs

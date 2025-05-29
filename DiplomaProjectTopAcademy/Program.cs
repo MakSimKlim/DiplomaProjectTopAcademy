@@ -1,7 +1,8 @@
-using DiplomaProjectTopAcademy.Data;
+п»їusing DiplomaProjectTopAcademy.Data;
 using DiplomaProjectTopAcademy.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,12 +18,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 //builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddDbContext<DiplomaProjectTopAcademyContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DiplomaProjectTopAcademyContext") ?? throw new InvalidOperationException("Connection string 'DiplomaProjectTopAcademyContext' not found.")));
 
 var app = builder.Build();
 
 //***********************************************************
 
-//We insert the code to initialize (seed) the database data (*Вставляем код для инициализации (seed) данных БД*):
+//We insert the code to initialize (seed) the database data (*пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (seed) пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ*):
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
