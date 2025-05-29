@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     public class ArmatureClass
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDArmatureClass { get; set; }        
         [Required]
         public required string NameClass { get; set; }        
@@ -15,7 +16,6 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required decimal FluidityYield { get; set; }
 
         //Navigation Properties
-        [Required]
-        public required ICollection<ArmatureRod> ArmatureRods { get; set; } // Один ArmatureClass → много ArmatureRods
+        public ICollection<ArmatureRod>? ArmatureRods { get; set; } // Один ArmatureClass → много ArmatureRods
     }
 }

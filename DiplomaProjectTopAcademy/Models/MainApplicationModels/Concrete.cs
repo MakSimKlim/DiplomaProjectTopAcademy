@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     public class Concrete
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDConcrete { get; set; }
         [Required]
         public required string ConcreteClass { get; set; }
@@ -17,8 +18,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required decimal StrengthMPa { get; set; }
 
         //Navigation Properties
-        [Required]
-        public required ICollection<SlabsConcretesRelation> SlabsConcretesRelations { get; set; } // Связь многие ко многим через таблицу
+        public ICollection<SlabsConcretesRelation>? Slabs { get; set; } // Связь многие ко многим через таблицу
 
     }
 }

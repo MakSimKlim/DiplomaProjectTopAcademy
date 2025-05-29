@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     public class SlabsFloorsRelation
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
         [ForeignKey("Slab")]
         public int IDSlab { get; set; }
@@ -15,9 +16,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public int IDFloor { get; set; }
 
         //Navigation properties
-        [Required]
         public required Slab Slab { get; set; } // Один SlabsFloorsRelation → один Slab
-        [Required]
         public required Floor Floor { get; set; } // Один SlabsFloorsRelation → один Floor
     }
 }

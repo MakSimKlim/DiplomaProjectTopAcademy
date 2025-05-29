@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     public class Armature
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDArmature { get; set; }
         [Required]
         public required string Diameter { get; set; }        
@@ -17,7 +18,6 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required string WeightOf1Meter { get; set; }
 
         //Navigation properties
-        [Required]
-        public required ICollection<ArmatureRod> ArmatureRods { get; set; } // Один Armature → много ArmatureRods
+        public ICollection<ArmatureRod>? ArmatureRods { get; set; } // Один Armature → много ArmatureRods
     }
 }

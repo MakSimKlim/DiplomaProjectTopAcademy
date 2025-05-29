@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     public class Floor
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDFloor { get; set; }
         [Required]
         public required int FloorNumber { get; set; }
@@ -22,9 +23,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required int IDSection { get; set; }
 
         //Navigation Properties
-        [Required]
         public required Section Section { get; set; } // Один Floor → один Section
-        [Required]
-        public required ICollection<SlabsFloorsRelation> SlabsFloorsRelations { get; set; } // Связь многие ко многим через таблицу
+        public ICollection<SlabsFloorsRelation>? Slabs { get; set; } // Связь многие ко многим через таблицу
     }
 }

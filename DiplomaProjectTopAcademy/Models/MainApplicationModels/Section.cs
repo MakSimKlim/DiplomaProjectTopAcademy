@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     public class Section
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDSection { get; set; }
         [Required]
         public required string SectionName { get; set; }        
@@ -19,8 +20,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required decimal AbsoluteZeroMark { get; set; }
 
         //Navigation properties
-        [Required]
-        public required ICollection<Floor> Floors { get; set; } // Один Section → много Floors
+        public ICollection<Floor>? Floors { get; set; } // Один Section → много Floors
 
     }
 }

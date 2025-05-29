@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     public class Slab
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDSlab { get; set; }
         [Required]
         public required string Name { get; set; }
@@ -23,14 +24,10 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public byte[]? Image { get; set; }
 
         //Navigation Properties
-        [Required]
         public required Project Project { get; set; } // Один Slab → один Project
-        [Required]
-        public required ICollection<SlabsFloorsRelation> SlabsFloorsRelations { get; set; } // Связь многие ко многим через таблицу
-        [Required]
-        public required ICollection<SlabsConcretesRelation> SlabsConcretesRelations { get; set; } // Связь многие ко многим через таблицу
-        [Required]
-        public required ICollection<SlabsArmatureRodsRelation> SlabsArmatureRodsRelations { get; set; } // Связь многие ко многим через таблицу
+        public ICollection<SlabsFloorsRelation>? Floors { get; set; } // Связь многие ко многим через таблицу
+        public ICollection<SlabsConcretesRelation>? Concretes { get; set; } // Связь многие ко многим через таблицу
+        public ICollection<SlabsArmatureRodsRelation>? ArmatureRods { get; set; } // Связь многие ко многим через таблицу
     }
 }
-//
+

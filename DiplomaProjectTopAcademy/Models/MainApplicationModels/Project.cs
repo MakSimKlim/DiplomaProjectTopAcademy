@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     public class Project
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDProject { get; set; }
         [Required]
         public required string Designation { get; set; }
@@ -20,8 +21,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required DateTime issueDate { get; set; }
 
         //Navigation Properties
-        [Required]
-        public required ICollection<Slab> Slabs { get; set; } // Один Project → много Slabs
+        public ICollection<Slab>? Slabs { get; set; } // Один Project → много Slabs
 
     }
 }

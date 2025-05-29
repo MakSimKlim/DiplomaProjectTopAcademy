@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     public class ArmatureRod
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IDArmatureRod { get; set; }
         [Required]
         public required int LengthInMillimeter { get; set; }
@@ -19,11 +20,8 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required int IDArmatureClass { get; set; }
 
         //Navigation Properties
-        [Required]
         public required Armature Armature { get; set; } // Один ArmatureRod → один Armature
-        [Required]
         public required ArmatureClass ArmatureClass { get; set; } // Один ArmatureRod → один ArmatureClass
-        [Required]
-        public required ICollection<SlabsArmatureRodsRelation> SlabsArmatureRodsRelations { get; set; } // Связь многие ко многим через таблицу
+        public ICollection<SlabsArmatureRodsRelation>? Slabs { get; set; } // Связь многие ко многим через таблицу
     }
 }
