@@ -31,3 +31,4 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
     }
 }
 
+// Brench for Scaffolding
