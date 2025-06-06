@@ -19,3 +19,4 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public ICollection<ArmatureRod>? ArmatureRods { get; set; } // Один ArmatureClass → много ArmatureRods
     }
 }
+//
