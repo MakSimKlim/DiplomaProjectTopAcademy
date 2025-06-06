@@ -24,10 +24,10 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public byte[]? Image { get; set; }
 
         //Navigation Properties
-        public required Project Project { get; set; } // Один Slab → один Project
-        public ICollection<SlabsFloorsRelation>? Floors { get; set; } // Связь многие ко многим через таблицу
-        public ICollection<SlabsConcretesRelation>? Concretes { get; set; } // Связь многие ко многим через таблицу
-        public ICollection<SlabsArmatureRodsRelation>? ArmatureRods { get; set; } // Связь многие ко многим через таблицу
+        public required Project Project { get; set; } // Связь один ко многим
+        public required Floor Floor { get; set; } // Связь один ко многим
+        public required Concrete Concrete { get; set; } // Связь один ко многим
+        public ICollection<SlabsArmatureRodsRelation>? SlabsArmatureRodsRelations { get; set; } // Связь многие ко многим через таблицу
     }
 }
 

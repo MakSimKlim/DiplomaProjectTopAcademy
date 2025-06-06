@@ -16,7 +16,6 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required decimal FluidityYield { get; set; }
 
         //Navigation Properties
-        public ICollection<ArmatureRod>? ArmatureRods { get; set; } // Один ArmatureClass → много ArmatureRods
+        public ICollection<ArmatureRod>? ArmatureRods { get; set; } // связь один ко многим
     }
 }
-//

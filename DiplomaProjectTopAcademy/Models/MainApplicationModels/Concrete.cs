@@ -18,7 +18,7 @@ namespace DiplomaProjectTopAcademy.Models.MainApplicationModels
         public required decimal StrengthMPa { get; set; }
 
         //Navigation Properties
-        public ICollection<SlabsConcretesRelation>? Slabs { get; set; } // Связь многие ко многим через таблицу
+        public ICollection<Slab>? Slabs { get; set; } // Связь один ко многим
 
     }
 }
