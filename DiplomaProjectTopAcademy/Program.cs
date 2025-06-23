@@ -1,5 +1,6 @@
 using DiplomaProjectTopAcademy.Data;
 using DiplomaProjectTopAcademy.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,16 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 //builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+//***** Настройка общего Cookie-аутентификации ************
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "YourApp.Auth"; // Установка имени cookie (одинаково для всех микросервисов)
+        options.LoginPath = "/Identity/Account/Login"; // Путь для перенаправления на страницу входа
+        options.AccessDeniedPath = "/Identity/Account/AccessDenied"; //Путь для перенаправления при отказе в доступе
+    });
+//**********************************************************
 
 var app = builder.Build();
 

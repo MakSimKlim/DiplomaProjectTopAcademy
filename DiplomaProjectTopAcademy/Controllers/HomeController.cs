@@ -40,6 +40,13 @@ namespace DiplomaProjectTopAcademy.Controllers
             return View();
         }
 
+        //Перенаправление из Identity в BusinessLogic
+        [Authorize] // Только для авторизованных
+        public IActionResult RedirectToBusiness()
+        {
+            return Redirect("http://localhost:5002/"); // URL BusinessLogic
+        }
+
         // следующие страницы (actions) в контроллере будут доступны только для авторизованных пользователей с определенными ролями (кроме Inactive)
         [Authorize(Roles = "SuperAdmin,Admin,Moderator,Basic")]
         public IActionResult Profile()
