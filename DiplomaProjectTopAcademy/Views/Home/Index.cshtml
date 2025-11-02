@@ -18,14 +18,15 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+    <h1 class="display-4">Welcome to Identity</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
     
     <!-- Кнопка перехода к BusinessLogic для зарегистрированных пользователей-->
     @if (User.Identity.IsAuthenticated)
     {
     <div class="mt-4 mb-5">
-            <a href="https://localhost:44366/" class="btn btn-primary btn-lg">
+            <a href="https://localhost:44324/" class="btn btn-primary btn-lg">
+                <!-- переделать через API Gateway для BusinessLogic в Ocelot или YARP изменить жесткий URL-->
             <i class="fas fa-arrow-right me-2"></i>Go to BusinessLogic Module
         </a>
     </div>

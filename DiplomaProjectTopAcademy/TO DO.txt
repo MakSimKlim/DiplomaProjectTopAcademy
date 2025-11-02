@@ -1,0 +1,1 @@
+﻿В Views/Home/Index.cshtml переделать через API Gateway для BusinessLogic в Ocelot или YARP изменить жесткий URL
