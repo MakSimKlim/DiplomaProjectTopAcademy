@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DiplomaProjectTopAcademy.Controllers
 {
-    [Authorize(Roles = "SuperAdmin")] // доступ только суперадмину
+    [Authorize] // доступ для авторизованных пользователей
     public class SubscriptionController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -20,19 +20,10 @@ namespace DiplomaProjectTopAcademy.Controllers
         public async Task<IActionResult> ChoosePlan(string plan)
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
             switch (plan)
             {
-                case "Trial":
-                    if (!user.TrialUsed)
-                    {
-                        user.SubscriptionType = "Trial";
-                        user.SubscriptionStartDate = DateTime.UtcNow;
-                        user.SubscriptionEndDate = DateTime.UtcNow.AddDays(7);
-                        user.TrialUsed = true;
-                        user.IsActive = true;
-                    }
-                    break;
-
                 case "Monthly":
                     user.SubscriptionType = "Monthly";
                     user.SubscriptionStartDate = DateTime.UtcNow;
@@ -59,22 +50,41 @@ namespace DiplomaProjectTopAcademy.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // Продление подписки (пока заглушка вместо оплаты)
+        // Продление подписки
         [HttpPost]
         public async Task<IActionResult> ExtendSubscription(string plan)
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            var currentEnd = user.SubscriptionEndDate ?? DateTime.UtcNow;
+
             if (plan == "Monthly")
-                user.SubscriptionEndDate = DateTime.UtcNow.AddMonths(1);
+                user.SubscriptionEndDate = currentEnd > DateTime.UtcNow
+                    ? currentEnd.AddMonths(1)
+                    : DateTime.UtcNow.AddMonths(1);
             else if (plan == "Yearly")
-                user.SubscriptionEndDate = DateTime.UtcNow.AddYears(1);
+                user.SubscriptionEndDate = currentEnd > DateTime.UtcNow
+                    ? currentEnd.AddYears(1)
+                    : DateTime.UtcNow.AddYears(1);
             else if (plan == "Test")
-                user.SubscriptionEndDate = DateTime.UtcNow.AddMinutes(1);
+                user.SubscriptionEndDate = currentEnd > DateTime.UtcNow
+                    ? currentEnd.AddMinutes(1)
+                    : DateTime.UtcNow.AddMinutes(1);
 
+            user.SubscriptionType = plan;
             user.IsActive = true;
-            await _userManager.UpdateAsync(user);
 
+            await _userManager.UpdateAsync(user);
             return RedirectToAction("Index", "Home");
+        }
+
+        // Методы для суперАдмина
+        [Authorize(Roles = "SuperAdmin")]
+        public IActionResult ManageSubscriptions()
+        {
+            var users = _userManager.Users.ToList();
+            return View(users);
         }
     }
 }

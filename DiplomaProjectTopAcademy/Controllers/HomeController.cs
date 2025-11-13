@@ -1,5 +1,6 @@
 using DiplomaProjectTopAcademy.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -8,23 +9,33 @@ namespace DiplomaProjectTopAcademy.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
+            _userManager = userManager;
         }
 
         // Стартовая страница - доступна всем
         [AllowAnonymous]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // Дополнительная проверка для Inactive пользователей
             if (User.Identity?.IsAuthenticated == true && User.IsInRole("Inactive"))
             {
-                return Forbid(); // Или RedirectToAction("Blocked");
+                return Forbid(); // или RedirectToAction("Blocked");
             }
-            return View();
+
+            ApplicationUser? user = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                user = await _userManager.GetUserAsync(User);
+            }
+
+            // Передаём пользователя в модель Razor
+            return View(user);
         }
+
 
         // Страница "Политика конфиденциальности" - доступна всем
         [AllowAnonymous]

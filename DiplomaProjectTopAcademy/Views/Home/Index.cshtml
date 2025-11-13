@@ -1,4 +1,6 @@
-﻿<!--@{
+﻿@model DiplomaProjectTopAcademy.Models.ApplicationUser
+
+@*@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -11,10 +13,11 @@
         2. <a href="https://codewithmukesh.com/blog/permission-based-authorization-in-aspnet-core/">Permission-Based Authorization in ASP.NET Core - Complete User Management Guide in .NET 5</a>.
         3. <a href="https://codewithmukesh.com/blog/multitenancy-in-aspnet-core/#service-registrations">Multitenancy in ASP.NET Core - Simplest Way to achieve Multitenancy</a>.
     </p>
-</div>
--->
+</div>*@
+
 @{
     ViewData["Title"] = "Identity Service";
+
 }
 
 <div class="text-center">
@@ -22,7 +25,7 @@
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
     
     <!-- Кнопка перехода к BusinessLogic для зарегистрированных пользователей-->
-    @if (User.Identity.IsAuthenticated)
+@*     @if (User.Identity.IsAuthenticated)
     {
     <div class="mt-4 mb-5">
             <a href="https://localhost:44324/" class="btn btn-primary btn-lg">
@@ -30,7 +33,29 @@
             <i class="fas fa-arrow-right me-2"></i>Go to BusinessLogic Module
         </a>
     </div>
+    } *@
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="mt-4 mb-5">
+            @if (Model != null && Model.IsActive && Model.SubscriptionEndDate.HasValue && Model.SubscriptionEndDate > DateTime.UtcNow)
+            {
+                <a href="https://localhost:44324/" class="btn btn-primary btn-lg rounded">
+                    <i class="fas fa-arrow-right me-2"></i>Go to BusinessLogic Module
+                </a>
+            }
+            else
+            {
+                <button class="btn btn-secondary btn-lg rounded" disabled>
+                    <i class="fas fa-ban me-2"></i>Go to BusinessLogic Module
+                </button>
+                <p class="mt-2 text-danger fw-bold">
+                    You need to select a subscription plan
+                </p>
+            }
+        </div>
     }
+
+
 
     <h4>Resources used as basis:</h4>
     <ul class="text-start" style="display: inline-block; text-align: left;">
