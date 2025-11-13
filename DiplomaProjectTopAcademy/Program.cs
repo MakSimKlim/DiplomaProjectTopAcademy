@@ -15,9 +15,16 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultUI()
         .AddDefaultTokenProviders();
+
+// заменяем стандартный SignInManager на кастомный
+builder.Services.AddScoped<SignInManager<ApplicationUser>, CustomSignInManager>();
+
 //builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+// Регистрируем Hosted Service для проверки подписок
+builder.Services.AddHostedService<SubscriptionCheckService>();
 
 //***** Настройка общего Cookie-аутентификации ************
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
