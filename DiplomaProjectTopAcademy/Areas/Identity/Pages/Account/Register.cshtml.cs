@@ -128,7 +128,7 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
                 string userName = baseUserName;
                 int counter = 1;
 
-                // 🔹 Проверяем, существует ли уже пользователь с таким email
+                // Проверяем, существует ли уже пользователь с таким email
                 var existingUserByEmail = await _userManager.FindByEmailAsync(Input.Email);
                 if (existingUserByEmail != null)
                 {
@@ -163,7 +163,16 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
 
                     //Add A Default Role to Newly Registered User - Inactive:
                     await _userManager.AddToRoleAsync(user, Enums.Roles.Inactive.ToString());
-                    
+
+                    // Автоматическая активация триала
+                    user.SubscriptionType = "Trial";
+                    user.SubscriptionStartDate = DateTime.UtcNow;
+                    user.SubscriptionEndDate = DateTime.UtcNow.AddDays(7);
+                    user.TrialUsed = true;
+                    user.IsActive = true;
+
+                    await _userManager.UpdateAsync(user);
+
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -185,6 +194,7 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         return LocalRedirect(returnUrl);
                     }
+
                 }
                 foreach (var error in result.Errors)
                 {

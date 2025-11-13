@@ -23,14 +23,16 @@
     </li>
 
     // индикатор подписки
-    <li class="nav-item">
-        <span class="nav-link text-muted small">
-            @if (appUser.SubscriptionEndDate != null)
+        <li class="nav-item" style="align-self: center;">
+            @if (appUser.IsActive && appUser.SubscriptionEndDate > DateTime.UtcNow)
             {
-                <span id="countdown"></span>
+                <span style="color:green; font-size:20px;">●</span>
             }
-        </span>
-    </li>
+            else
+            {
+                <span style="color:red; font-size:20px;">●</span>
+            }
+        </li>
 
     // кнопка выхода
     <li class="nav-item">
@@ -49,28 +51,3 @@ else
     </li>
 }
 </ul>
-
-@section Scripts {
-    <script>
-        var endDate = new Date("@(UserManager.GetUserAsync(User).Result?.SubscriptionEndDate?.ToString("yyyy-MM-ddTHH:mm:ss"))");
-
-        function updateCountdown() {
-            var now = new Date();
-            var diff = endDate - now;
-
-            if (diff <= 0) {
-                document.getElementById("countdown").innerHTML = "Подписка истекла!";
-                return;
-            }
-
-            var minutes = Math.floor(diff / 1000 / 60);
-            var seconds = Math.floor((diff / 1000) % 60);
-
-            document.getElementById("countdown").innerHTML =
-                "Осталось: " + minutes + " мин " + seconds + " сек";
-        }
-
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
-    </script>
-}
