@@ -8,18 +8,18 @@
     var appUser = await UserManager.GetUserAsync(User);
 }
 
-<h2>Моя подписка</h2>
-<hr />
+<h2>Subscription</h2>
+<br/>
 
-<p><strong>Текущий тариф:</strong> @appUser.SubscriptionType</p>
-<p><strong>Дата окончания:</strong> @appUser.SubscriptionEndDate?.ToString("dd.MM.yyyy HH:mm:ss")</p>
-<p><strong>Статус:</strong> @(appUser.IsActive ? "Активна" : "Неактивна")</p>
+<p><strong>Flowing Tariff:</strong> @appUser.SubscriptionType</p>
+<p><strong>End Date:</strong> @appUser.SubscriptionEndDate?.ToString("dd.MM.yyyy HH:mm:ss")</p>
+<p><strong>Status:</strong> @(appUser.IsActive ? "Active" : "Not active")</p>
 
 <div id="countdown" class="text-primary fw-bold"></div>
 
 <form asp-controller="Subscription" asp-action="ExtendSubscription" method="post" class="mt-3">
     <button type="submit" name="plan" value="@appUser.SubscriptionType" class="btn btn-success">
-        Продлить подписку
+        Renew subscription
     </button>
 </form>
 
@@ -32,7 +32,7 @@
             var diff = endDate - now;
 
             if (diff <= 0) {
-                document.getElementById("countdown").innerHTML = "Подписка истекла!";
+                document.getElementById("countdown").innerHTML = "Subscription expired!";
                 return;
             }
 
@@ -42,7 +42,7 @@
             var seconds = Math.floor((diff / 1000) % 60);
 
             document.getElementById("countdown").innerHTML =
-                "Осталось: " + days + " дн " + hours + " ч " + minutes + " мин " + seconds + " сек";
+                "It remains until the end of the subscription: " + days + " d " + hours + " h " + minutes + " m " + seconds + " s";
         }
 
         setInterval(updateCountdown, 1000);
