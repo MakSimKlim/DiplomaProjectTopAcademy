@@ -16,7 +16,7 @@ public class SubscriptionCheckService : BackgroundService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        int intervalMinutes = config.GetValue<int>("SubscriptionCheckIntervalMinutes", 1);
+        int intervalMinutes = config.GetValue<int>("SubscriptionCheckIntervalMinutes", 1); // интервал проверки подписки IsActive пользователей по умолчанию 1 минута
         _checkInterval = TimeSpan.FromMinutes(intervalMinutes);
     }
 
