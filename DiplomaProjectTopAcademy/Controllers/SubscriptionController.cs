@@ -15,7 +15,14 @@ namespace DiplomaProjectTopAcademy.Controllers
             _userManager = userManager;
         }
 
-        // Выбор тарифа
+        // GET: страница выбора тарифа
+        [HttpGet]
+        public IActionResult ChoosePlan()
+        {
+            return View(); // отобразит Views/Subscription/ChoosePlan.cshtml
+        }
+
+        // POST: активация тарифа
         [HttpPost]
         public async Task<IActionResult> ChoosePlan(string plan)
         {
@@ -76,7 +83,8 @@ namespace DiplomaProjectTopAcademy.Controllers
             user.IsActive = true;
 
             await _userManager.UpdateAsync(user);
-            return RedirectToAction("Index", "Home");
+            //return RedirectToAction("Index", "Home");
+            return RedirectToPage("/Subscription");
         }
 
         // Методы для суперАдмина

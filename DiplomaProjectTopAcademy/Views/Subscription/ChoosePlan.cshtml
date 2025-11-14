@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Choose Subscription Plan";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Choose Your Subscription Plan</h2>
+
+    <form asp-controller="Subscription" asp-action="ChoosePlan" method="post" class="w-50 mx-auto">
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="radio" name="plan" id="monthlyPlan" value="Monthly" checked>
+            <label class="form-check-label fw-bold" for="monthlyPlan">
+                Monthly — 1 month access
+            </label>
+        </div>
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="radio" name="plan" id="yearlyPlan" value="Yearly">
+            <label class="form-check-label fw-bold" for="yearlyPlan">
+                Yearly — 12 months access
+            </label>
+        </div>
+
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="radio" name="plan" id="testPlan" value="Test">
+            <label class="form-check-label fw-bold" for="testPlan">
+                Test — 1 minute demo
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-lg w-100">
+            <i class="fas fa-credit-card me-2"></i> Pay & Activate
+        </button>
+    </form>
+
+</div>
