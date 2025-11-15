@@ -1,10 +1,10 @@
 ﻿@page
-@model ManageSubscriptionsModel
+@model DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage.ManageSubscriptionsModel
 @using DiplomaProjectTopAcademy.Models
-@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Manage Subscriptions";
+    ViewData["ActivePage"] = ManageNavPages.ManageSubscriptions;
 }
 
 <h2 class="mb-4">Manage User Subscriptions</h2>
@@ -32,7 +32,7 @@
                 <td>@(user.SubscriptionEndDate?.ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
                 <td>@(user.IsActive ? "Active ✅" : "Inactive ❌")</td>
                 <td>
-                    <form asp-controller="Subscription" asp-action="SetSubscription" method="post" class="d-flex flex-column">
+                    <form method="post" asp-page-handler="SetSubscription" class="d-flex flex-column">
                         <input type="hidden" name="userId" value="@user.Id" />
 
                         <select name="plan" class="form-select mb-2">

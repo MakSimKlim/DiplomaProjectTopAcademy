@@ -69,6 +69,9 @@ namespace  DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage
         //новый пункт для подписки
         public static string Subscription => "Subscription";
 
+        // новый пункт для управления подписками (SuperAdmin)
+        public static string ManageSubscriptions => "ManageSubscriptions";
+
         public static string IndexNavClass(ViewContext viewContext) => PageNavClass(viewContext, Index);
 
         /// <summary>
@@ -115,6 +118,9 @@ namespace  DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage
 
         // метод для подсветки активного пункта
         public static string SubscriptionNavClass(ViewContext viewContext) => PageNavClass(viewContext, Subscription);
+
+        // метод для ManageSubscriptions для superadmin
+        public static string ManageSubscriptionsNavClass(ViewContext viewContext) => PageNavClass(viewContext, ManageSubscriptions);
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used

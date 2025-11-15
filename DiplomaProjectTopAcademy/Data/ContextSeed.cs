@@ -28,7 +28,11 @@ namespace DiplomaProjectTopAcademy.Data
                 FirstName = "Max",
                 LastName = "Klimov",
                 EmailConfirmed = true,
-                PhoneNumberConfirmed = true
+                PhoneNumberConfirmed = true,
+                SubscriptionType = "Infinity",
+                SubscriptionStartDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                SubscriptionEndDate = DateTime.MaxValue, // 31 декабря 9999 года
+                IsActive = true
             };
             if (userManager.Users.All(u => u.Id != defaultUser.Id))
             {
@@ -42,7 +46,15 @@ namespace DiplomaProjectTopAcademy.Data
                     await userManager.AddToRoleAsync(defaultUser, Enums.Roles.Admin.ToString());
                     await userManager.AddToRoleAsync(defaultUser, Enums.Roles.SuperAdmin.ToString());
                 }
-
+                else
+                {
+                    // если пользователь уже есть, обновим подписку
+                    user.SubscriptionType = "Infinity";
+                    user.SubscriptionStartDate = DateTime.UtcNow;
+                    user.SubscriptionEndDate = DateTime.UtcNow.AddYears(1000);
+                    user.IsActive = true;
+                    await userManager.UpdateAsync(user);
+                }
             }
         }
     }

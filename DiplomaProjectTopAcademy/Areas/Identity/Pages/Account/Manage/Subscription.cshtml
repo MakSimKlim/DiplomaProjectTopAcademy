@@ -1,12 +1,11 @@
 ﻿@page
-@model SubscriptionModel
+@model DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage.SubscriptionModel
 @using DiplomaProjectTopAcademy.Models
-@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Subscription";
     ViewData["ActivePage"] = ManageNavPages.Subscription;
-    var appUser = await UserManager.GetUserAsync(User);
+    var appUser = Model.AppUser;
 }
 
 <h2 class="mb-4">My Subscription</h2>
@@ -15,30 +14,26 @@
 {
     <div class="form-floating mb-3">
         <input class="form-control rounded bg-white"
-               style="background-color:white;"
                value="@(appUser.SubscriptionType ?? "No plan")" readonly />
-        <label class="form-label"><strong>Current Plan</strong></label>
+        <label><strong>Current Plan</strong></label>
     </div>
 
     <div class="form-floating mb-3">
         <input class="form-control rounded bg-white"
-               style="background-color:white;"
                value="@(appUser.SubscriptionStartDate?.ToString("dd.MM.yyyy HH:mm:ss") ?? "—")" readonly />
-        <label class="form-label"><strong>Start Date</strong></label>
+        <label><strong>Start Date</strong></label>
     </div>
 
     <div class="form-floating mb-3">
         <input class="form-control rounded bg-white"
-               style="background-color:white;"
                value="@(appUser.SubscriptionEndDate?.ToString("dd.MM.yyyy HH:mm:ss") ?? "—")" readonly />
-        <label class="form-label"><strong>End Date</strong></label>
+        <label><strong>End Date</strong></label>
     </div>
 
     <div class="form-floating mb-3">
         <input class="form-control rounded bg-white"
-               style="background-color:white;"
-               value="@(appUser.IsActive == true ? "Active ✅" : "Inactive ❌")" readonly />
-        <label class="form-label"><strong>Status</strong></label>
+               value="@(appUser.IsActive ? "Active ✅" : "Inactive ❌")" readonly />
+        <label><strong>Status</strong></label>
     </div>
 
     @if (appUser.SubscriptionEndDate != null)
@@ -51,7 +46,7 @@
     <div class="mt-3">
         @if (appUser.IsActive && appUser.SubscriptionEndDate > DateTime.UtcNow)
         {
-            <form asp-controller="Subscription" asp-action="ExtendSubscription" method="post">
+            <form method="post" asp-page-handler="Extend">
                 <button type="submit" name="plan" value="@appUser.SubscriptionType"
                         class="btn btn-success w-100 rounded">
                     Renew subscription
@@ -60,10 +55,16 @@
         }
         else
         {
-            <a asp-controller="Subscription" asp-action="ChoosePlan"
-               class="btn btn-warning w-100 rounded">
-                Select new plan
-            </a>
+            <form method="post" asp-page-handler="Choose">
+                <select name="plan" class="form-select mb-2">
+                    <option value="Monthly">Monthly</option>
+                    <option value="Yearly">Yearly</option>
+                    <option value="Test">Test (1 min)</option>
+                </select>
+                <button type="submit" class="btn btn-warning w-100 rounded">
+                    Select new plan
+                </button>
+            </form>
         }
     </div>
 }
@@ -71,7 +72,6 @@ else
 {
     <div class="alert alert-warning rounded">User not found</div>
 }
-
 
 @section Scripts {
     <script>
