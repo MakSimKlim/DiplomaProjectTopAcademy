@@ -54,8 +54,8 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage
                     : DateTime.UtcNow.AddYears(1);
             else if (plan == "Test")
                 user.SubscriptionEndDate = currentEnd > DateTime.UtcNow
-                    ? currentEnd.AddMinutes(2)
-                    : DateTime.UtcNow.AddMinutes(2);
+                    ? currentEnd.AddMinutes(1)
+                    : DateTime.UtcNow.AddMinutes(1);
 
             user.SubscriptionType = plan;
             user.IsActive = true;

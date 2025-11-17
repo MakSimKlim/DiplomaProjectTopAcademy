@@ -23,10 +23,11 @@ public class CustomSignInManager : SignInManager<ApplicationUser>
     {
         var user = await UserManager.FindByNameAsync(userName);
 
-        if (user != null && !user.IsActive)
-        {
-            return SignInResult.NotAllowed; // блокируем вход
-        }
+        // Без этого кода вход возможен всегда, но с некоторыми ограничениями
+        //if (user != null && !user.IsActive)
+        //{
+        //    return SignInResult.NotAllowed; // блокируем вход
+        //}
 
         return await base.PasswordSignInAsync(userName, password, isPersistent, lockoutOnFailure);
     }

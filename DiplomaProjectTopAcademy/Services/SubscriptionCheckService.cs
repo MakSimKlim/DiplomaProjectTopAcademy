@@ -41,6 +41,7 @@ public class SubscriptionCheckService : BackgroundService
                         }
                     }
                 }
+
             }
 
             await Task.Delay(_checkInterval, stoppingToken);

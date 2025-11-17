@@ -53,8 +53,8 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage
                         break;
                     case "Test":
                         user.SubscriptionEndDate = currentEnd > now
-                            ? currentEnd.AddMinutes(2)
-                            : now.AddMinutes(2);
+                            ? currentEnd.AddMinutes(1)
+                            : now.AddMinutes(1);
                         break;
                 }
             }
@@ -71,7 +71,7 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage
                         user.SubscriptionEndDate = now.AddYears(1);
                         break;
                     case "Test":
-                        user.SubscriptionEndDate = now.AddMinutes(2);
+                        user.SubscriptionEndDate = now.AddMinutes(1);
                         break;
                 }
             }

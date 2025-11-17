@@ -49,7 +49,7 @@ namespace DiplomaProjectTopAcademy.Controllers
             }
             else if (plan == "Test")
             {
-                user.SubscriptionEndDate = DateTime.UtcNow.AddMinutes(2);
+                user.SubscriptionEndDate = DateTime.UtcNow.AddMinutes(1);
             }
             else if (plan == "Monthly")
             {
