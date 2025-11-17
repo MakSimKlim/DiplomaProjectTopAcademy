@@ -50,8 +50,8 @@ namespace DiplomaProjectTopAcademy.Data
                 {
                     // если пользователь уже есть, обновим подписку
                     user.SubscriptionType = "Infinity";
-                    user.SubscriptionStartDate = DateTime.UtcNow;
-                    user.SubscriptionEndDate = DateTime.UtcNow.AddYears(1000);
+                    user.SubscriptionStartDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                    user.SubscriptionEndDate = DateTime.MaxValue; // 31 декабря 9999 года
                     user.IsActive = true;
                     await userManager.UpdateAsync(user);
                 }

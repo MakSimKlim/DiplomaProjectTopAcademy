@@ -10,6 +10,13 @@
 
 <h2 class="mb-4">My Subscription</h2>
 
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success mt-4 text-center fw-bold">
+        @TempData["Message"]
+    </div>
+}
+
 @if (appUser != null)
 {
     <div class="form-floating mb-3">
@@ -21,13 +28,13 @@
     <div class="form-floating mb-3">
         <input class="form-control rounded bg-white"
                value="@(appUser.SubscriptionStartDate?.ToString("dd.MM.yyyy HH:mm:ss") ?? "—")" readonly />
-        <label><strong>Start Date</strong></label>
+        <label><strong>Start Date (UTC)</strong></label>
     </div>
 
     <div class="form-floating mb-3">
         <input class="form-control rounded bg-white"
                value="@(appUser.SubscriptionEndDate?.ToString("dd.MM.yyyy HH:mm:ss") ?? "—")" readonly />
-        <label><strong>End Date</strong></label>
+        <label><strong>End Date (UTC)</strong></label>
     </div>
 
     <div class="form-floating mb-3">
@@ -36,35 +43,44 @@
         <label><strong>Status</strong></label>
     </div>
 
-    @if (appUser.SubscriptionEndDate != null)
+    @if (appUser.SubscriptionEndDate != null && appUser.SubscriptionEndDate > DateTime.UtcNow && !User.IsInRole("SuperAdmin"))
     {
         <div class="alert alert-success fw-bold mb-3 rounded">
             <strong>Time left:</strong> <span id="subscriptionCountdown"></span>
         </div>
     }
 
+
     <div class="mt-3">
-        @if (appUser.IsActive && appUser.SubscriptionEndDate > DateTime.UtcNow)
+        @* Для обычных пользователей — Renew/Choose *@
+        @if (!(User.IsInRole("SuperAdmin")))
         {
-            <form method="post" asp-page-handler="Extend">
-                <button type="submit" name="plan" value="@appUser.SubscriptionType"
-                        class="btn btn-success w-100 rounded">
-                    Renew subscription
-                </button>
-            </form>
+            @if (appUser.IsActive && appUser.SubscriptionEndDate > DateTime.UtcNow)
+            {
+                <form method="get" asp-page="ChoosePlan">
+                    <input type="hidden" name="mode" value="extend" />
+                    <input type="hidden" name="plan" value="@appUser.SubscriptionType" />
+                    <button type="submit" class="btn btn-success w-100 rounded">
+                        Renew subscription
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form method="get" asp-page="ChoosePlan">
+                    <button type="submit" class="btn btn-warning w-100 rounded">
+                        Select new plan
+                    </button>
+                </form>
+
+            }
         }
         else
         {
-            <form method="post" asp-page-handler="Choose">
-                <select name="plan" class="form-select mb-2">
-                    <option value="Monthly">Monthly</option>
-                    <option value="Yearly">Yearly</option>
-                    <option value="Test">Test (1 min)</option>
-                </select>
-                <button type="submit" class="btn btn-warning w-100 rounded">
-                    Select new plan
-                </button>
-            </form>
+            @* Для SuperAdmin — сообщение вместо кнопки *@
+            <div class="alert alert-info fw-bold mb-3 rounded">
+                Бессрочная подписка (SuperAdmin) — продление не требуется
+            </div>
         }
     </div>
 }
@@ -73,32 +89,43 @@ else
     <div class="alert alert-warning rounded">User not found</div>
 }
 
+
+
 @section Scripts {
     <script>
-        var endDateString = "@(appUser?.SubscriptionEndDate?.ToString("yyyy-MM-ddTHH:mm:ss"))";
-        if (endDateString && endDateString.length > 0) {
-            var endDate = new Date(endDateString);
+        // Берём дату окончания подписки в формате ISO 8601 (UTC с Z)
+        var endDateString = "@(appUser?.SubscriptionEndDate?.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))";
+
+        // Проверяем, что дата есть и элемент существует
+        var countdownEl = document.getElementById("subscriptionCountdown");
+        if (endDateString && countdownEl) {
+            var endDate = new Date(endDateString); // это UTC
 
             function updateSubscriptionCountdown() {
+                // Берём текущее время и переводим его в UTC
                 var now = new Date();
-                var diff = endDate - now;
+                var utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+
+                var diff = endDate - utcNow;
 
                 if (diff <= 0) {
-                    document.getElementById("subscriptionCountdown").innerHTML = "Subscription expired!";
+                    countdownEl.innerHTML = "Subscription expired!";
                     return;
                 }
 
                 var days = Math.floor(diff / (1000 * 60 * 60 * 24));
                 var hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                var minutes = Math.floor((diff / 1000 / 60) % 60);
+                var minutes = Math.floor((diff / (1000 * 60)) % 60);
                 var seconds = Math.floor((diff / 1000) % 60);
 
-                document.getElementById("subscriptionCountdown").innerHTML =
+                countdownEl.innerHTML =
                     days + " d " + hours + " h " + minutes + " m " + seconds + " s";
             }
 
-            setInterval(updateSubscriptionCountdown, 1000);
+            // Запускаем таймер сразу и обновляем каждую секунду
             updateSubscriptionCountdown();
+            setInterval(updateSubscriptionCountdown, 1000);
         }
     </script>
 }
+

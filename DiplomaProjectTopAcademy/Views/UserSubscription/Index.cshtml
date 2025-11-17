@@ -1,10 +1,7 @@
-﻿@page
-@model DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage.ManageSubscriptionsModel
-@using DiplomaProjectTopAcademy.Models
+﻿@model List<DiplomaProjectTopAcademy.Models.ApplicationUser>
 
 @{
-    ViewData["Title"] = "Manage Subscriptions";
-    ViewData["ActivePage"] = ManageNavPages.ManageSubscriptions;
+    ViewData["Title"] = "Manage User Subscriptions";
 }
 
 <h2 class="mb-4">Manage User Subscriptions</h2>
@@ -22,7 +19,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var user in Model.Users)
+        @foreach (var user in Model)
         {
             <tr>
                 <td>@user.Email</td>
@@ -32,13 +29,13 @@
                 <td>@(user.SubscriptionEndDate?.ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
                 <td>@(user.IsActive ? "Active ✅" : "Inactive ❌")</td>
                 <td>
-                    <form method="post" asp-page-handler="SetSubscription" class="d-flex flex-column">
+                    <form asp-action="SetSubscription" method="post" class="d-flex flex-column">
                         <input type="hidden" name="userId" value="@user.Id" />
 
                         <select name="plan" class="form-select mb-2">
                             <option value="Monthly">Monthly</option>
                             <option value="Yearly">Yearly</option>
-                            <option value="Test">Test (1 min)</option>
+                            <option value="Test">Test (2 min)</option>
                             <option value="Trial">Trial (7 days)</option>
                         </select>
 

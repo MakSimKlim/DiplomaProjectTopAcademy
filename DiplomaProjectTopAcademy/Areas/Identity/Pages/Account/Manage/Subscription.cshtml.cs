@@ -31,9 +31,9 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage
             // Если супер‑админ — делаем вечную подписку
             if (await _userManager.IsInRoleAsync(user, "SuperAdmin"))
             {
-                user.SubscriptionType = "SuperAdmin";
-                user.SubscriptionStartDate = DateTime.UtcNow;
-                user.SubscriptionEndDate = null; // бесконечно
+                user.SubscriptionType = "Infinity";
+                user.SubscriptionStartDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                user.SubscriptionEndDate = DateTime.MaxValue; // 31 декабря 9999 года
                 user.IsActive = true;
 
                 await _userManager.UpdateAsync(user);
@@ -54,8 +54,8 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage
                     : DateTime.UtcNow.AddYears(1);
             else if (plan == "Test")
                 user.SubscriptionEndDate = currentEnd > DateTime.UtcNow
-                    ? currentEnd.AddMinutes(1)
-                    : DateTime.UtcNow.AddMinutes(1);
+                    ? currentEnd.AddMinutes(2)
+                    : DateTime.UtcNow.AddMinutes(2);
 
             user.SubscriptionType = plan;
             user.IsActive = true;
@@ -63,38 +63,6 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account.Manage
             await _userManager.UpdateAsync(user);
             return RedirectToPage(); // остаёмся на Subscription.cshtml
         }
-
-        public async Task<IActionResult> OnPostChooseAsync(string plan)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return NotFound();
-
-            switch (plan)
-            {
-                case "Monthly":
-                    user.SubscriptionType = "Monthly";
-                    user.SubscriptionStartDate = DateTime.UtcNow;
-                    user.SubscriptionEndDate = DateTime.UtcNow.AddMonths(1);
-                    user.IsActive = true;
-                    break;
-
-                case "Yearly":
-                    user.SubscriptionType = "Yearly";
-                    user.SubscriptionStartDate = DateTime.UtcNow;
-                    user.SubscriptionEndDate = DateTime.UtcNow.AddYears(1);
-                    user.IsActive = true;
-                    break;
-
-                case "Test":
-                    user.SubscriptionType = "Test";
-                    user.SubscriptionStartDate = DateTime.UtcNow;
-                    user.SubscriptionEndDate = DateTime.UtcNow.AddMinutes(1);
-                    user.IsActive = true;
-                    break;
-            }
-
-            await _userManager.UpdateAsync(user);
-            return RedirectToPage(); // остаёмся на Subscription.cshtml
-        }
+      
     }
 }
