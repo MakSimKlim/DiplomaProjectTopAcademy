@@ -44,12 +44,17 @@ namespace DiplomaProjectTopAcademy.Controllers
             if (!Directory.Exists(backupDir))
                 Directory.CreateDirectory(backupDir);
 
-            var fileName = $"backup_{DateTime.Now:yyyy_MM_dd_HH_mm_ss}.bak";
+            // Получаем имя базы из connection string
+            var builder = new SqlConnectionStringBuilder(_connectionString);
+            var dbName = builder.InitialCatalog;
+
+            // Формируем имя файла: <DbName>_YYYY_MM_DD_HH_mm_ss.bak
+            var fileName = $"{dbName}_{DateTime.Now:yyyy_MM_dd_HH_mm_ss}.bak";
             var filePath = Path.Combine(backupDir, fileName);
 
             using (var connection = new SqlConnection(_connectionString))
             {
-                var sql = $"BACKUP DATABASE [aspnet-DiplomaProjectTopAcademy-e7191b6f-1cc2-4003-9645-5d1608e96bec] TO DISK = '{filePath}'";
+                var sql = $"BACKUP DATABASE [{dbName}] TO DISK = '{filePath}'";
                 using (var command = new SqlCommand(sql, connection))
                 {
                     connection.Open();
