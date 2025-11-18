@@ -1,18 +1,39 @@
-﻿using DiplomaProjectTopAcademy.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using DiplomaProjectTopAcademy.Models;
 
 namespace DiplomaProjectTopAcademy.Controllers
 {
     public class BackupController : Controller
     {
+        private readonly string backupDir;
+        private readonly string _connectionString;
+
+        public BackupController(IConfiguration config)
+        {
+            // Читаем строку подключения из appsettings.json или переменных окружения
+            _connectionString = config.GetConnectionString("DefaultConnection");
+            backupDir = config["BackupSettings:Directory"];
+        }
+
         public IActionResult Index()
         {
-            // Здесь можно получить список файлов из папки резервных копий
-            var backups = new List<BackupViewModel>
-        {
-            new BackupViewModel { FileName = "backup_2025_11_18.bak", CreatedAt = DateTime.Now.AddDays(-1), SizeKb = 20480, Location = "Local" },
-            new BackupViewModel { FileName = "backup_2025_11_17.bak", CreatedAt = DateTime.Now.AddDays(-2), SizeKb = 19800, Location = "Cloud" }
-        };
+            if (!Directory.Exists(backupDir))
+                Directory.CreateDirectory(backupDir);
+
+            var files = Directory.GetFiles(backupDir, "*.bak");
+
+            var backups = files.Select(f =>
+            {
+                var info = new FileInfo(f);
+                return new BackupViewModel
+                {
+                    FileName = info.Name,
+                    CreatedAt = info.CreationTime,
+                    SizeKb = info.Length / 1024,
+                    Location = "Local"
+                };
+            }).OrderByDescending(b => b.CreatedAt).ToList();
 
             return View(backups);
         }
@@ -20,22 +41,55 @@ namespace DiplomaProjectTopAcademy.Controllers
         [HttpPost]
         public IActionResult CreateBackup()
         {
-            // Здесь вызывается сервис, который делает BACKUP DATABASE
-            // Например, через SqlCommand: BACKUP DATABASE [YourDb] TO DISK = '...'
+            if (!Directory.Exists(backupDir))
+                Directory.CreateDirectory(backupDir);
 
-            TempData["Message"] = "Backup created successfully!";
+            var fileName = $"backup_{DateTime.Now:yyyy_MM_dd_HH_mm_ss}.bak";
+            var filePath = Path.Combine(backupDir, fileName);
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var sql = $"BACKUP DATABASE [aspnet-DiplomaProjectTopAcademy-e7191b6f-1cc2-4003-9645-5d1608e96bec] TO DISK = '{filePath}'";
+                using (var command = new SqlCommand(sql, connection))
+                {
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            TempData["Message"] = $"Backup {fileName} created successfully!";
             return RedirectToAction("Index");
         }
 
         [HttpGet]
         public IActionResult Download(string fileName)
         {
-            // Здесь читаем файл из папки резервных копий
-            var path = Path.Combine("C:\\Backups", fileName);
+            var path = Path.Combine(backupDir, fileName);
+            if (!System.IO.File.Exists(path))
+                return NotFound();
+
             var mimeType = "application/octet-stream";
             var fileBytes = System.IO.File.ReadAllBytes(path);
 
             return File(fileBytes, mimeType, fileName);
+        }
+
+        [HttpPost]
+        public IActionResult CleanupOldBackups(int keepLast = 10)
+        {
+            var files = Directory.GetFiles(backupDir, "*.bak")
+                                 .Select(f => new FileInfo(f))
+                                 .OrderByDescending(f => f.CreationTime)
+                                 .ToList();
+
+            var oldFiles = files.Skip(keepLast);
+            foreach (var file in oldFiles)
+            {
+                file.Delete();
+            }
+
+            TempData["Message"] = $"Cleanup done. Only last {keepLast} backups kept.";
+            return RedirectToAction("Index");
         }
     }
 }
