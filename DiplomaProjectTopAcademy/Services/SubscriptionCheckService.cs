@@ -36,6 +36,7 @@ public class SubscriptionCheckService : BackgroundService
                         if (user.IsActive)
                         {
                             user.IsActive = false;
+                            user.SubscriptionType = "Inactive"; // <-- статус подписки
                             await userManager.UpdateAsync(user);
                             _logger.LogInformation($"User {user.UserName} deactivated — the subscription has expired.");
                         }

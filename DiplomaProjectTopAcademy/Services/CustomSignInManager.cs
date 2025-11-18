@@ -22,13 +22,6 @@ public class CustomSignInManager : SignInManager<ApplicationUser>
         bool isPersistent, bool lockoutOnFailure)
     {
         var user = await UserManager.FindByNameAsync(userName);
-
-        // Без этого кода вход возможен всегда, но с некоторыми ограничениями
-        //if (user != null && !user.IsActive)
-        //{
-        //    return SignInResult.NotAllowed; // блокируем вход
-        //}
-
         return await base.PasswordSignInAsync(userName, password, isPersistent, lockoutOnFailure);
     }
 }

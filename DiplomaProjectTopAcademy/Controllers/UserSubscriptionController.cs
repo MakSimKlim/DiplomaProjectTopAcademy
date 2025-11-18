@@ -46,18 +46,22 @@ namespace DiplomaProjectTopAcademy.Controllers
             {
                 user.SubscriptionEndDate = DateTime.UtcNow.AddDays(7);
                 user.TrialUsed = true;
+                user.IsActive = true;
             }
             else if (plan == "Test")
             {
                 user.SubscriptionEndDate = DateTime.UtcNow.AddMinutes(1);
+                user.IsActive = true;
             }
             else if (plan == "Monthly")
             {
                 user.SubscriptionEndDate = DateTime.UtcNow.AddMonths(1);
+                user.IsActive = true;
             }
             else if (plan == "Yearly")
             {
                 user.SubscriptionEndDate = DateTime.UtcNow.AddYears(1);
+                user.IsActive = true;
             }
             else
             {
@@ -66,9 +70,7 @@ namespace DiplomaProjectTopAcademy.Controllers
                 user.SubscriptionEndDate = DateTime.UtcNow; // подписка сразу считается истекшей
                 user.IsActive = false;
             }
-
-
-            user.IsActive = true;
+           
             await _userManager.UpdateAsync(user);
 
             return RedirectToAction(nameof(Index));

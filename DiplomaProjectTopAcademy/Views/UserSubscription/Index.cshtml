@@ -14,7 +14,7 @@
             <th>Current Plan</th>
             <th>Start Date</th>
             <th>End Date</th>
-            <th>Status</th>
+            <th>Subscription status</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -33,13 +33,14 @@
                         <input type="hidden" name="userId" value="@user.Id" />
 
                         <select name="plan" class="form-select mb-2">
+                            <option>-- Select plan --</option>
                             <option value="Monthly">Monthly</option>
                             <option value="Yearly">Yearly</option>
-                            <option value="Test">Test (2 min)</option>
-                            <option value="Trial">Trial (7 days)</option>
+                            <option value="Test">Test (1 min)</option>
+                            <option value="Inactive">Inactive</option>
                         </select>
 
-                        <input type="datetime-local" name="endDate" class="form-control mb-2" />
+                        @* <input type="datetime-local" name="endDate" class="form-control mb-2" /> *@
 
                         <button type="submit" class="btn btn-primary">Apply</button>
                     </form>
