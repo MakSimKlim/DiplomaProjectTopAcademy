@@ -361,3 +361,18 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Игнорируем файлы резервных копий базы данных
+*.bak
+*.bak.gz
+*.bak.zip
+
+# Игнорируем папки, где хранятся реальные бэкапы
+Backups/
+DatabaseBackups/
+
+# Но явно разрешаем Razor-страницы и код в папке Backup (UI для админов)
+!Backup/*.cshtml
+!Backup/*.cs
+!Backup/*.js
+!Backup/*.css
