@@ -368,8 +368,6 @@ FodyWeavers.xsd
 *.bak.zip
 
 # Игнорируем папки, где хранятся реальные бэкапы
-Backups/
-DatabaseBackups/
 
 # Но явно разрешаем Razor-страницы и код в папке Backup (UI для админов)
 !Backup/*.cshtml
