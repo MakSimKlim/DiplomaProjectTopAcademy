@@ -1,5 +1,7 @@
+using DiplomaProjectTopAcademy.Controllers;
 using DiplomaProjectTopAcademy.Data;
 using DiplomaProjectTopAcademy.Models;
+using DiplomaProjectTopAcademy.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +24,10 @@ builder.Services.AddScoped<SignInManager<ApplicationUser>, CustomSignInManager>(
 //builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+// HostedService для авто-бэкапа
+builder.Services.AddHostedService<BackupHostedService>();
+builder.Services.AddScoped<BackupController>();
 
 // Регистрируем Hosted Service для проверки подписок
 builder.Services.AddHostedService<SubscriptionCheckService>();

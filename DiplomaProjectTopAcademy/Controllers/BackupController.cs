@@ -8,6 +8,7 @@ namespace DiplomaProjectTopAcademy.Controllers
     {
         private readonly string backupDir;
         private readonly string _connectionString;
+        private static string _frequency = "EveryMinute"; // хранится в памяти
 
         public BackupController(IConfiguration config)
         {
@@ -35,36 +36,69 @@ namespace DiplomaProjectTopAcademy.Controllers
                 };
             }).OrderByDescending(b => b.CreatedAt).ToList();
 
+            // передаём текущий тариф во ViewBag
+            ViewBag.BackupFrequency = _frequency;
+
             return View(backups);
+        }
+
+        [HttpPost]
+        public IActionResult SetBackupFrequency(string frequency)
+        {
+            var allowed = new[] { "EveryMinute", "Hourly", "Daily", "Weekly", "Disabled" };
+            if (!allowed.Contains(frequency))
+            {
+                TempData["Message"] = "Invalid frequency.";
+                return RedirectToAction("Index");
+            }
+
+            _frequency = frequency; // сохраняем глобально
+            TempData["Message"] = $"Frequency set to {frequency}";
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
         public IActionResult CreateBackup()
         {
-            if (!Directory.Exists(backupDir))
-                Directory.CreateDirectory(backupDir);
-
-            // Получаем имя базы из connection string
-            var builder = new SqlConnectionStringBuilder(_connectionString);
-            var dbName = builder.InitialCatalog;
-
-            // Формируем имя файла: <DbName>_YYYY_MM_DD_HH_mm_ss.bak
-            var fileName = $"{dbName}_{DateTime.UtcNow:yyyy_MM_dd_HH_mm_ss}.bak";
-            var filePath = Path.Combine(backupDir, fileName);
-
-            using (var connection = new SqlConnection(_connectionString))
+            try
             {
-                var sql = $"BACKUP DATABASE [{dbName}] TO DISK = '{filePath}'";
-                using (var command = new SqlCommand(sql, connection))
+                if (!Directory.Exists(backupDir))
+                    Directory.CreateDirectory(backupDir);
+
+                var builder = new SqlConnectionStringBuilder(_connectionString);
+                var dbName = builder.InitialCatalog;
+
+                var fileName = $"{dbName}_{DateTime.UtcNow:yyyy_MM_dd_HH_mm_ss}.bak";
+                var filePath = Path.Combine(backupDir, fileName);
+
+                using (var connection = new SqlConnection(_connectionString))
                 {
-                    connection.Open();
-                    command.ExecuteNonQuery();
+                    var sql = $"BACKUP DATABASE [{dbName}] TO DISK = '{filePath}'";
+                    using (var command = new SqlCommand(sql, connection))
+                    {
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                    }
                 }
+
+                TempData["Message"] = $"Backup {fileName} created successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] = $"Backup failed: {ex.Message}";
             }
 
-            TempData["Message"] = $"Backup {fileName} created successfully!";
             return RedirectToAction("Index");
         }
+
+        public static TimeSpan GetDelay() => _frequency switch
+        {
+            "EveryMinute" => TimeSpan.FromMinutes(1),
+            "Hourly" => TimeSpan.FromHours(1),
+            "Daily" => TimeSpan.FromDays(1),
+            "Weekly" => TimeSpan.FromDays(7),
+            _ => Timeout.InfiniteTimeSpan // Disabled
+        };
 
         [HttpGet]
         public IActionResult Download(string fileName)
@@ -90,7 +124,11 @@ namespace DiplomaProjectTopAcademy.Controllers
             var oldFiles = files.Skip(keepLast);
             foreach (var file in oldFiles)
             {
-                file.Delete();
+                try
+                {
+                    file.Delete();
+                }
+                catch { /* игнорируем ошибки удаления */ }
             }
 
             TempData["Message"] = $"Cleanup done. Only last {keepLast} backups kept.";
