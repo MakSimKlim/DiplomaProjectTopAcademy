@@ -49,7 +49,7 @@ namespace DiplomaProjectTopAcademy.Controllers
             var dbName = builder.InitialCatalog;
 
             // Формируем имя файла: <DbName>_YYYY_MM_DD_HH_mm_ss.bak
-            var fileName = $"{dbName}_{DateTime.Now:yyyy_MM_dd_HH_mm_ss}.bak";
+            var fileName = $"{dbName}_{DateTime.UtcNow:yyyy_MM_dd_HH_mm_ss}.bak";
             var filePath = Path.Combine(backupDir, fileName);
 
             using (var connection = new SqlConnection(_connectionString))
