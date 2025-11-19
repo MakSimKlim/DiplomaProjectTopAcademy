@@ -8,9 +8,19 @@ namespace DiplomaProjectTopAcademy.Controllers
     {
         private readonly string backupDir;
         private readonly string _connectionString;
-        private static string _frequency = "EveryMinute"; // хранится в памяти
-        private static DateTime? _lastBackupUtc = null;
+        private static string _frequency = "Disabled"; // хранится в памяти
+        //private static string _frequency = "EveryMinute"; // хранится в памяти
 
+        // Настройки времени
+        private static int _hourlyHour = 0;
+        private static int _hourlyMinute = 0;
+
+        private static int _dailyHour = 2;
+        private static int _dailyMinute = 0;
+
+        private static DayOfWeek _weeklyDay = DayOfWeek.Sunday;
+        private static int _weeklyHour = 2;
+        private static int _weeklyMinute = 0;
 
         public BackupController(IConfiguration config)
         {
@@ -40,12 +50,12 @@ namespace DiplomaProjectTopAcademy.Controllers
 
             // передаём текущий тариф во ViewBag
             ViewBag.BackupFrequency = _frequency;
+            
 
             // вычисляем время следующего запуска
-            var delay = GetDelay();
-            if (delay != Timeout.InfiniteTimeSpan && _lastBackupUtc != null)
+            if (_frequency != "Disabled")
             {
-                ViewBag.NextBackupUtc = _lastBackupUtc.Value.Add(delay);
+                ViewBag.NextBackupUtc = GetNextScheduledUtc();
             }
             else
             {
@@ -95,8 +105,6 @@ namespace DiplomaProjectTopAcademy.Controllers
                     }
                 }
 
-                _lastBackupUtc = DateTime.UtcNow;
-
                 TempData["Message"] = $"Backup {fileName} created successfully!";
             }
             catch (Exception ex)
@@ -107,14 +115,47 @@ namespace DiplomaProjectTopAcademy.Controllers
             return RedirectToAction("Index");
         }
 
-        public static TimeSpan GetDelay() => _frequency switch
+        // вычисляем ближайшее время следующего запуска по тарифу
+        public static DateTime GetNextScheduledUtc()
         {
-            "EveryMinute" => TimeSpan.FromMinutes(1),
-            "Hourly" => TimeSpan.FromHours(1),
-            "Daily" => TimeSpan.FromDays(1),
-            "Weekly" => TimeSpan.FromDays(7),
-            _ => Timeout.InfiniteTimeSpan // Disabled
-        };
+            var now = DateTime.UtcNow;
+
+            return _frequency switch
+            {
+                "EveryMinute" => GetNextMinuteUtc(now),
+                "Hourly" => GetNextHourUtc(now),
+                "Daily" => GetNextDailyUtc(now),
+                "Weekly" => GetNextWeeklyUtc(now),
+                _ => DateTime.MinValue
+            };
+        }
+
+        private static DateTime GetNextMinuteUtc(DateTime now)
+        {
+            return new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc).AddMinutes(1);
+        }
+
+        private static DateTime GetNextHourUtc(DateTime now)
+        {
+            return new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Utc).AddHours(1);
+        }
+
+        private static DateTime GetNextDailyUtc(DateTime now)
+        {
+            var next = new DateTime(now.Year, now.Month, now.Day, 2, 0, 0, DateTimeKind.Utc);
+            if (next <= now)
+                next = next.AddDays(1);
+            return next;
+        }
+
+        private static DateTime GetNextWeeklyUtc(DateTime now)
+        {
+            var daysUntilSunday = ((int)DayOfWeek.Sunday - (int)now.DayOfWeek + 7) % 7;
+            var next = new DateTime(now.Year, now.Month, now.Day, 2, 0, 0, DateTimeKind.Utc).AddDays(daysUntilSunday);
+            if (next <= now)
+                next = next.AddDays(7);
+            return next;
+        }
 
         [HttpGet]
         public IActionResult Download(string fileName)

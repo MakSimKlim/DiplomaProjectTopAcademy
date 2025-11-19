@@ -22,12 +22,17 @@ namespace DiplomaProjectTopAcademy.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var delay = BackupController.GetDelay();
-                if (delay == Timeout.InfiniteTimeSpan)
+                var nextRun = BackupController.GetNextScheduledUtc();
+                if (nextRun == DateTime.MinValue)
                 {
+                    // Disabled → просто ждём немного и проверяем снова
                     await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
                     continue;
                 }
+
+                var delay = nextRun - DateTime.UtcNow;
+                if (delay < TimeSpan.Zero)
+                    delay = TimeSpan.Zero;
 
                 await Task.Delay(delay, stoppingToken);
                 if (stoppingToken.IsCancellationRequested) break;
@@ -37,7 +42,6 @@ namespace DiplomaProjectTopAcademy.Services
 
                 try
                 {
-                    // имитируем нажатие кнопки
                     controller.CreateBackup();
                     _logger.LogInformation("Automatic backup created at {time}", DateTime.UtcNow);
                 }

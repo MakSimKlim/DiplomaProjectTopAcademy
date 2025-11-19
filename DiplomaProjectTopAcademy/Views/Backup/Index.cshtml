@@ -25,26 +25,25 @@
 
 <p>Current frequency: <strong>@ViewBag.BackupFrequency</strong></p>
 
-
-
 <form asp-action="CreateBackup" method="post" class="mb-3">
     <button type="submit" class="btn btn-primary">Create Backup Now</button>
 </form>
 
-@if (ViewBag.NextBackupUtc != null)
+@if (ViewBag.BackupFrequency == "Disabled")
 {
-    <div class="alert alert-info fw-bold mb-3 rounded">
-        <strong>Next backup in:</strong> <span id="backupCountdown"></span>
+    <div class="alert alert-danger fw-bold mb-3 rounded">
+        Backups are not being performed.
     </div>
 }
 else
 {
-    <div class="alert alert-warning fw-bold mb-3 rounded">
-        The automatic timer is not available because the first backup has not been created yet.
+    <div class="alert alert-info fw-bold mb-3 rounded">
+        <strong>Next backup in:</strong> <span id="backupCountdown"></span>
         <br />
-        Create a copy manually by clicking "Create a backup now" to start the countdown or wait for the first backup to be created
+        <small>(UTC: @(((DateTime)ViewBag.NextBackupUtc).ToString("yyyy-MM-dd HH:mm:ss")))</small>
     </div>
 }
+
 
 <table class="table table-striped table-bordered">
     <thead class="table-dark">
@@ -61,7 +60,7 @@ else
         {
             <tr>
                 <td>@backup.FileName</td>
-                <td>@backup.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                <td>@backup.CreatedAt.ToUniversalTime().ToString("dd.MM.yyyy HH:mm") UTC</td>
                 <td>@backup.SizeKb</td>
                 <td>@backup.Location</td>
                 <td>
@@ -94,7 +93,7 @@ else
 
 
                 if (diff <= 0) {
-                    countdownEl.innerHTML = "Backup starting...";
+                    countdownEl.innerHTML = "Backup created";
                     return;
                 }
 
