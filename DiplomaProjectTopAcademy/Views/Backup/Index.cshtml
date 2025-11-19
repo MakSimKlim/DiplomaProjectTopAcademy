@@ -13,21 +13,38 @@
 
 <form asp-action="SetBackupFrequency" method="post" class="mb-3">
     <label for="frequency">Backup Frequency:</label>
-    <select id="frequency" name="frequency" class="form-select w-auto d-inline">
-        <option value="EveryMinute" selected="@(ViewBag.BackupFrequency == "EveryMinute")">Every Minute (Test)</option>
-        <option value="Hourly" selected="@(ViewBag.BackupFrequency == "Hourly")">Hourly</option>
-        <option value="Daily" selected="@(ViewBag.BackupFrequency == "Daily")">Daily (Default)</option>
-        <option value="Weekly" selected="@(ViewBag.BackupFrequency == "Weekly")">Weekly</option>
-        <option value="Disabled" selected="@(ViewBag.BackupFrequency == "Disabled")">Disabled</option>
-    </select>
+        <select id="frequency" name="frequency" class="form-select w-auto d-inline">
+            <option value="EveryMinute" selected="@(ViewBag.BackupFrequency == "EveryMinute")">Every Minute (Test)</option>
+            <option value="Hourly" selected="@(ViewBag.BackupFrequency == "Hourly")">Hourly</option>
+            <option value="Daily" selected="@(ViewBag.BackupFrequency == "Daily")">Daily (Default)</option>
+            <option value="Weekly" selected="@(ViewBag.BackupFrequency == "Weekly")">Weekly</option>
+            <option value="Disabled" selected="@(ViewBag.BackupFrequency == "Disabled")">Disabled</option>
+        </select>
     <button type="submit" class="btn btn-info ms-2">Save Frequency</button>
 </form>
 
 <p>Current frequency: <strong>@ViewBag.BackupFrequency</strong></p>
 
+
+
 <form asp-action="CreateBackup" method="post" class="mb-3">
     <button type="submit" class="btn btn-primary">Create Backup Now</button>
 </form>
+
+@if (ViewBag.NextBackupUtc != null)
+{
+    <div class="alert alert-info fw-bold mb-3 rounded">
+        <strong>Next backup in:</strong> <span id="backupCountdown"></span>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning fw-bold mb-3 rounded">
+        The automatic timer is not available because the first backup has not been created yet.
+        <br />
+        Create a copy manually by clicking "Create a backup now" to start the countdown or wait for the first backup to be created
+    </div>
+}
 
 <table class="table table-striped table-bordered">
     <thead class="table-dark">
@@ -61,3 +78,37 @@
     <input type="number" name="keepLast" value="10" class="form-control d-inline w-auto me-2" />
     <button type="submit" class="btn btn-warning">Cleanup Old Backups</button>
 </form>
+
+
+@section Scripts {
+    <script>
+        var nextBackupString = "@(ViewBag.NextBackupUtc?.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))";
+        var countdownEl = document.getElementById("backupCountdown");
+
+        if (nextBackupString && countdownEl) {
+            var nextBackupDate = new Date(nextBackupString);
+
+            function updateBackupCountdown() {
+                var nowUtc = new Date(); // JS хранит время в UTC внутри объекта
+                var diff = nextBackupDate.getTime() - nowUtc.getTime();
+
+
+                if (diff <= 0) {
+                    countdownEl.innerHTML = "Backup starting...";
+                    return;
+                }
+
+                var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                var minutes = Math.floor((diff / (1000 * 60)) % 60);
+                var seconds = Math.floor((diff / 1000) % 60);
+
+                countdownEl.innerHTML =
+                    days + " d " + hours + " h " + minutes + " m " + seconds + " s";
+            }
+
+            updateBackupCountdown();
+            setInterval(updateBackupCountdown, 1000);
+        }
+    </script>
+}

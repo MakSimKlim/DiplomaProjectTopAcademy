@@ -9,6 +9,8 @@ namespace DiplomaProjectTopAcademy.Controllers
         private readonly string backupDir;
         private readonly string _connectionString;
         private static string _frequency = "EveryMinute"; // хранится в памяти
+        private static DateTime? _lastBackupUtc = null;
+
 
         public BackupController(IConfiguration config)
         {
@@ -38,6 +40,18 @@ namespace DiplomaProjectTopAcademy.Controllers
 
             // передаём текущий тариф во ViewBag
             ViewBag.BackupFrequency = _frequency;
+
+            // вычисляем время следующего запуска
+            var delay = GetDelay();
+            if (delay != Timeout.InfiniteTimeSpan && _lastBackupUtc != null)
+            {
+                ViewBag.NextBackupUtc = _lastBackupUtc.Value.Add(delay);
+            }
+            else
+            {
+                ViewBag.NextBackupUtc = null;
+            }
+
 
             return View(backups);
         }
@@ -80,6 +94,8 @@ namespace DiplomaProjectTopAcademy.Controllers
                         command.ExecuteNonQuery();
                     }
                 }
+
+                _lastBackupUtc = DateTime.UtcNow;
 
                 TempData["Message"] = $"Backup {fileName} created successfully!";
             }
