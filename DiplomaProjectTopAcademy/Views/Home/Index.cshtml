@@ -1,4 +1,5 @@
 ﻿@model DiplomaProjectTopAcademy.Models.ApplicationUser
+@inject IConfiguration Configuration
 
 @*@{
     ViewData["Title"] = "Home Page";
@@ -17,6 +18,7 @@
 
 @{
     ViewData["Title"] = "Identity Service";
+    var businessUrl = Configuration["BusinessLogic:BaseUrl"];
 
 }
 
@@ -39,7 +41,7 @@
         <div class="mt-4 mb-5">
             @if (Model != null && Model.IsActive && Model.SubscriptionEndDate.HasValue && Model.SubscriptionEndDate > DateTime.UtcNow)
             {
-                <a href="https://localhost:44324/" class="btn btn-primary btn-lg rounded">
+                <a href="@businessUrl" class="btn btn-primary btn-lg rounded">
                     <i class="fas fa-arrow-right me-2"></i>Go to BusinessLogic Module
                 </a>
             }
