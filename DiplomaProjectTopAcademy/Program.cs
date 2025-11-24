@@ -3,8 +3,11 @@ using DiplomaProjectTopAcademy.Data;
 using DiplomaProjectTopAcademy.Models;
 using DiplomaProjectTopAcademy.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +35,7 @@ builder.Services.AddScoped<BackupController>();
 // Регистрируем Hosted Service для проверки подписок
 builder.Services.AddHostedService<SubscriptionCheckService>();
 
+/*
 //***** Настройка общего Cookie-аутентификации ************
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -41,6 +45,38 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Identity/Account/AccessDenied"; //Путь для перенаправления при отказе в доступе
     });
 //**********************************************************
+*/
+
+// ***** Cookies (UI) + JWT (API) - вместо простой куки аутентификации *****
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "YourApp.Auth";
+        options.LoginPath = "/Identity/Account/Login";
+        options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    })
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+        // options.RequireHttpsMetadata = false; // при необходимости
+    });
+// **************************************
 
 var app = builder.Build();
 
