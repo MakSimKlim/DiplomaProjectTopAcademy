@@ -41,7 +41,7 @@
         <div class="mt-4 mb-5">
             @if (Model != null && Model.IsActive && Model.SubscriptionEndDate.HasValue && Model.SubscriptionEndDate > DateTime.UtcNow)
             {
-                <a href="@businessUrl" class="btn btn-primary btn-lg rounded">
+                <a asp-action="RedirectToBusiness" asp-controller="Home" class="btn btn-primary btn-lg rounded">
                     <i class="fas fa-arrow-right me-2"></i>Go to BusinessLogic Module
                 </a>
             }

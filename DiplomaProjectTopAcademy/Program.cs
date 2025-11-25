@@ -1,4 +1,4 @@
-using DiplomaProjectTopAcademy.Controllers;
+п»їusing DiplomaProjectTopAcademy.Controllers;
 using DiplomaProjectTopAcademy.Data;
 using DiplomaProjectTopAcademy.Models;
 using DiplomaProjectTopAcademy.Services;
@@ -21,46 +21,52 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddDefaultUI()
         .AddDefaultTokenProviders();
 
-// заменяем стандартный SignInManager на кастомный
+// Р·Р°РјРµРЅСЏРµРј СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ SignInManager РЅР° РєР°СЃС‚РѕРјРЅС‹Р№
 builder.Services.AddScoped<SignInManager<ApplicationUser>, CustomSignInManager>();
 
 //builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// HostedService для авто-бэкапа
+// HostedService РґР»СЏ Р°РІС‚Рѕ-Р±СЌРєР°РїР°
 builder.Services.AddHostedService<BackupHostedService>();
 builder.Services.AddScoped<BackupController>();
 
-// Регистрируем Hosted Service для проверки подписок
+// Р РµРіРёСЃС‚СЂРёСЂСѓРµРј Hosted Service РґР»СЏ РїСЂРѕРІРµСЂРєРё РїРѕРґРїРёСЃРѕРє
 builder.Services.AddHostedService<SubscriptionCheckService>();
 
+// SecurityStampValidator вЂ” С‡С‚РѕР±С‹ РєСѓРєР° РЅРµ РёРЅРІР°Р»РёРґРёСЂРѕРІР°Р»Р°СЃСЊ РјРіРЅРѕРІРµРЅРЅРѕ
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.FromHours(1);
+});
+
 /*
-//***** Настройка общего Cookie-аутентификации ************
+//***** РќР°СЃС‚СЂРѕР№РєР° РѕР±С‰РµРіРѕ Cookie-Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёРё ************
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.Cookie.Name = "YourApp.Auth"; // Установка имени cookie (одинаково для всех микросервисов)
-        options.LoginPath = "/Identity/Account/Login"; // Путь для перенаправления на страницу входа
-        options.AccessDeniedPath = "/Identity/Account/AccessDenied"; //Путь для перенаправления при отказе в доступе
+        options.Cookie.Name = "YourApp.Auth"; // РЈСЃС‚Р°РЅРѕРІРєР° РёРјРµРЅРё cookie (РѕРґРёРЅР°РєРѕРІРѕ РґР»СЏ РІСЃРµС… РјРёРєСЂРѕСЃРµСЂРІРёСЃРѕРІ)
+        options.LoginPath = "/Identity/Account/Login"; // РџСѓС‚СЊ РґР»СЏ РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ РЅР° СЃС‚СЂР°РЅРёС†Сѓ РІС…РѕРґР°
+        options.AccessDeniedPath = "/Identity/Account/AccessDenied"; //РџСѓС‚СЊ РґР»СЏ РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ РїСЂРё РѕС‚РєР°Р·Рµ РІ РґРѕСЃС‚СѓРїРµ
     });
 //**********************************************************
 */
 
-// ***** Cookies (UI) + JWT (API) - вместо простой куки аутентификации *****
-builder.Services
-    .AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    })
+
+// ***** Cookies (UI) + JWT (API) *****
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.Cookie.Name = "YourApp.Auth";
+        options.Cookie.Name = ".AspNetCore.Identity.Application"; // РёР»Рё СѓР±РµСЂРё РІРѕРІСЃРµ, С‡С‚РѕР±С‹ Р±С‹Р»Рѕ РґРµС„РѕР»С‚РЅРѕРµ РёРјСЏ
         options.LoginPath = "/Identity/Account/Login";
         options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     })
-    .AddJwtBearer("Bearer", options =>
+    .AddJwtBearer("MicroserviceJwt", options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -74,15 +80,28 @@ builder.Services
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
-        // options.RequireHttpsMetadata = false; // при необходимости
     });
+
+
+
 // **************************************
+
+// РІРєР»СЋС‡Р°РµРј СЃРµСЃСЃРёСЋ *************************
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+//******************************************
 
 var app = builder.Build();
 
 //***********************************************************
 
-//We insert the code to initialize (seed) the database data (*Вставляем код для инициализации (seed) данных БД*):
+//We insert the code to initialize (seed) the database data (*Р’СЃС‚Р°РІР»СЏРµРј РєРѕРґ РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё (seed) РґР°РЅРЅС‹С… Р‘Р”*):
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -107,6 +126,7 @@ using (var scope = app.Services.CreateScope())
 
 //***********************************************************
 
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -124,7 +144,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication(); // добавлено для аутентификации
+app.UseSession();   // РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ Р”Рћ app.UseEndpoints()
+
+app.UseAuthentication(); // РґРѕР±Р°РІР»РµРЅРѕ РґР»СЏ Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёРё
 app.UseAuthorization();
 
 app.MapControllerRoute(

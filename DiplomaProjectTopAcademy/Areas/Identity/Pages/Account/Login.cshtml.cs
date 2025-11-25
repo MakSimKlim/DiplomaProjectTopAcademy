@@ -17,6 +17,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using DiplomaProjectTopAcademy.Models;
 using System.Net.Mail;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
 {
@@ -26,12 +30,14 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly IConfiguration _config;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILogger<LoginModel> logger, IConfiguration config)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _logger = logger;
+            _config = config;
         }
 
         /// <summary>
@@ -142,8 +148,19 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
+                    var user = await _userManager.FindByNameAsync(userName);
+
+                    // Генерация JWT и сохранение в TempData
+                    var token = GenerateJwtToken(user);
+                    HttpContext.Session.SetString("JwtToken", token);  // сохраняем токен в сессии
+
                     _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
+                    // если ReturnUrl есть и он локальный — редиректим туда
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                        return LocalRedirect(returnUrl);
+
+                    // иначе по умолчанию ведём на Profile
+                    return RedirectToAction("Profile", "Home");
                 }
                 if (result.RequiresTwoFactor)
                 {
@@ -164,6 +181,34 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        private string GenerateJwtToken(ApplicationUser user)
+        {
+            var roles = _userManager.GetRolesAsync(user).Result;
+
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? "")
+            };
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(15),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         //new function to check if the entered data is a valid email id or not

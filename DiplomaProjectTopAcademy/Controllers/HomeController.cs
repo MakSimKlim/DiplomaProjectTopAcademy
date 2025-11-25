@@ -1,4 +1,5 @@
 using DiplomaProjectTopAcademy.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +11,13 @@ namespace DiplomaProjectTopAcademy.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IConfiguration _config;   // добавл€ем поле
 
-        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager)
+        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager, IConfiguration config)
         {
             _logger = logger;
             _userManager = userManager;
+            _config = config;
         }
 
         // —тартова€ страница - доступна всем
@@ -35,6 +38,23 @@ namespace DiplomaProjectTopAcademy.Controllers
             // ѕередаЄм пользовател€ в модель Razor
             return View(user);
         }
+
+        [Authorize(Roles = "SuperAdmin,Admin,Moderator,Basic")]
+        public IActionResult RedirectToBusiness()
+        {
+            // токен можно хранить в TempData или выдавать через AuthJwtController
+            var token = HttpContext.Session.GetString("JwtToken");
+            var businessUrl = _config["BusinessLogic:BaseUrl"];
+
+            if (string.IsNullOrEmpty(token))
+            {
+                //return RedirectToAction("Index"); // fallback
+                return Content("JWT token is missing");
+            }
+
+            return Redirect($"{businessUrl}?token={token}");
+        }
+
 
 
         // —траница "ѕолитика конфиденциальности" - доступна всем
@@ -60,6 +80,7 @@ namespace DiplomaProjectTopAcademy.Controllers
         //}
 
         // следующие страницы (actions) в контроллере будут доступны только дл€ авторизованных пользователей с определенными рол€ми (кроме Inactive)
+        //[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SuperAdmin,Admin,Moderator,Basic")]
         [Authorize(Roles = "SuperAdmin,Admin,Moderator,Basic")]
         public IActionResult Profile()
         {
