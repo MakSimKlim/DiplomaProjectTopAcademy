@@ -7,14 +7,20 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Globalization;
+using System.Security.Claims;
 using System.Text;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ===== DbContext =====
 // ConfigureServices method:
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+
+// ===== Identity =====
 //builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -28,6 +34,7 @@ builder.Services.AddScoped<SignInManager<ApplicationUser>, CustomSignInManager>(
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
+// ===== Hosted Services =====
 // HostedService для авто-бэкапа
 builder.Services.AddHostedService<BackupHostedService>();
 builder.Services.AddScoped<BackupController>();
@@ -35,6 +42,7 @@ builder.Services.AddScoped<BackupController>();
 // Регистрируем Hosted Service для проверки подписок
 builder.Services.AddHostedService<SubscriptionCheckService>();
 
+// ===== SecurityStampValidator =====
 // SecurityStampValidator — чтобы кука не инвалидировалась мгновенно
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
@@ -54,6 +62,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 */
 
 
+/*
 // ***** Cookies (UI) + JWT (API) *****
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -64,7 +73,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.SlidingExpiration = true;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
     })
     .AddJwtBearer("MicroserviceJwt", options =>
     {
@@ -81,11 +90,71 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             ClockSkew = TimeSpan.Zero
         };
     });
-
-
-
+*/
 // **************************************
 
+
+// ===== JwtTokenService =====
+builder.Services.AddScoped<JwtTokenService>();
+
+// ===== Authentication =====
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = ".AspNetCore.Identity.Application";
+        options.LoginPath = "/Identity/Account/Login";
+        options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(2); // access‑токен живёт 1 минуту
+        options.SlidingExpiration = false; // не продлеваем автоматически
+    })
+    .AddJwtBearer("MicroserviceJwt", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
+            RoleClaimType = ClaimTypes.Role // важно для работы ролей
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = ctx =>
+            {
+                var subEnd = ctx.Principal?.FindFirst("subscription_end")?.Value;
+                if (!string.IsNullOrEmpty(subEnd))
+                {
+                    if (DateTime.TryParseExact(
+                        subEnd,
+                        "o",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
+                        out var endUtc))
+                    {
+                        if (endUtc <= DateTime.UtcNow)
+                            ctx.Fail("Subscription expired");
+                    }
+                    else
+                    {
+                        var logger = ctx.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogWarning("Invalid subscription_end format in JWT: {Value}", subEnd);
+                    }
+                }
+                return Task.CompletedTask;
+            }
+        };
+
+    });
+
+// ===== Session =====
 // включаем сессию *************************
 builder.Services.AddDistributedMemoryCache();
 
@@ -101,6 +170,8 @@ var app = builder.Build();
 
 //***********************************************************
 
+
+// ===== Seed DB =====
 //We insert the code to initialize (seed) the database data (*Вставляем код для инициализации (seed) данных БД*):
 using (var scope = app.Services.CreateScope())
 {
@@ -126,7 +197,7 @@ using (var scope = app.Services.CreateScope())
 
 //***********************************************************
 
-
+// ===== Pipeline =====
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

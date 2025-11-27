@@ -1,9 +1,10 @@
-using DiplomaProjectTopAcademy.Models;
+п»їusing DiplomaProjectTopAcademy.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Text.Encodings.Web;
 
 namespace DiplomaProjectTopAcademy.Controllers
 {
@@ -11,7 +12,7 @@ namespace DiplomaProjectTopAcademy.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IConfiguration _config;   // добавляем поле
+        private readonly IConfiguration _config;   // РґРѕР±Р°РІР»СЏРµРј РїРѕР»Рµ
 
         public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager, IConfiguration config)
         {
@@ -20,13 +21,13 @@ namespace DiplomaProjectTopAcademy.Controllers
             _config = config;
         }
 
-        // Стартовая страница - доступна всем
+        // РЎС‚Р°СЂС‚РѕРІР°СЏ СЃС‚СЂР°РЅРёС†Р° - РґРѕСЃС‚СѓРїРЅР° РІСЃРµРј
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             if (User.Identity?.IsAuthenticated == true && User.IsInRole("Inactive"))
             {
-                return Forbid(); // или RedirectToAction("Blocked");
+                return Forbid(); // РёР»Рё RedirectToAction("Blocked");
             }
 
             ApplicationUser? user = null;
@@ -35,51 +36,54 @@ namespace DiplomaProjectTopAcademy.Controllers
                 user = await _userManager.GetUserAsync(User);
             }
 
-            // Передаём пользователя в модель Razor
+            // РџРµСЂРµРґР°С‘Рј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ РјРѕРґРµР»СЊ Razor
             return View(user);
         }
 
+        // РїРµСЂРµС…РѕРґ РІ Р±РёР·РЅРµСЃвЂ‘РјРѕРґСѓР»СЊ РїРѕ РєРЅРѕРїРєРµ
         [Authorize(Roles = "SuperAdmin,Admin,Moderator,Basic")]
         public IActionResult RedirectToBusiness()
         {
-            // токен можно хранить в TempData или выдавать через AuthJwtController
-            var token = HttpContext.Session.GetString("JwtToken");
+            var accessToken = HttpContext.Session.GetString("AccessToken");
+            var refreshToken = HttpContext.Session.GetString("RefreshToken");
+            var userId = HttpContext.Session.GetString("UserId");
             var businessUrl = _config["BusinessLogic:BaseUrl"];
 
-            if (string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(userId))
             {
-                //return RedirectToAction("Index"); // fallback
                 return Content("JWT token is missing");
             }
 
-            return Redirect($"{businessUrl}?token={token}");
+            var redirectUrl = $"{businessUrl}?token={UrlEncoder.Default.Encode(accessToken)}&refresh={UrlEncoder.Default.Encode(refreshToken)}&userId={UrlEncoder.Default.Encode(userId)}";
+            return Redirect(redirectUrl);
         }
 
 
 
-        // Страница "Политика конфиденциальности" - доступна всем
+
+        // РЎС‚СЂР°РЅРёС†Р° "РџРѕР»РёС‚РёРєР° РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё" - РґРѕСЃС‚СѓРїРЅР° РІСЃРµРј
         [AllowAnonymous]
         public IActionResult Privacy()
         {
             return View();
         }
 
-        // Страница "Как это работает" - доступна всем
+        // РЎС‚СЂР°РЅРёС†Р° "РљР°Рє СЌС‚Рѕ СЂР°Р±РѕС‚Р°РµС‚" - РґРѕСЃС‚СѓРїРЅР° РІСЃРµРј
         [AllowAnonymous]
         public IActionResult HowItWorks()
         {
             return View();
         }
 
-        // эта часть кода заменена на JWT Bearer логику
-        ////Перенаправление из Identity в BusinessLogic 
-        //[Authorize] // Только для авторизованных
+        // СЌС‚Р° С‡Р°СЃС‚СЊ РєРѕРґР° Р·Р°РјРµРЅРµРЅР° РЅР° JWT Bearer Р»РѕРіРёРєСѓ
+        ////РџРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёРµ РёР· Identity РІ BusinessLogic 
+        //[Authorize] // РўРѕР»СЊРєРѕ РґР»СЏ Р°РІС‚РѕСЂРёР·РѕРІР°РЅРЅС‹С…
         //public IActionResult RedirectToBusiness()
         //{
         //    return Redirect("http://localhost:5002/"); // URL BusinessLogic
         //}
 
-        // следующие страницы (actions) в контроллере будут доступны только для авторизованных пользователей с определенными ролями (кроме Inactive)
+        // СЃР»РµРґСѓСЋС‰РёРµ СЃС‚СЂР°РЅРёС†С‹ (actions) РІ РєРѕРЅС‚СЂРѕР»Р»РµСЂРµ Р±СѓРґСѓС‚ РґРѕСЃС‚СѓРїРЅС‹ С‚РѕР»СЊРєРѕ РґР»СЏ Р°РІС‚РѕСЂРёР·РѕРІР°РЅРЅС‹С… РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ СЃ РѕРїСЂРµРґРµР»РµРЅРЅС‹РјРё СЂРѕР»СЏРјРё (РєСЂРѕРјРµ Inactive)
         //[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SuperAdmin,Admin,Moderator,Basic")]
         [Authorize(Roles = "SuperAdmin,Admin,Moderator,Basic")]
         public IActionResult Profile()
@@ -87,7 +91,7 @@ namespace DiplomaProjectTopAcademy.Controllers
             return View();
         }
 
-        // Страница ошибок - доступна всем
+        // РЎС‚СЂР°РЅРёС†Р° РѕС€РёР±РѕРє - РґРѕСЃС‚СѓРїРЅР° РІСЃРµРј
         [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

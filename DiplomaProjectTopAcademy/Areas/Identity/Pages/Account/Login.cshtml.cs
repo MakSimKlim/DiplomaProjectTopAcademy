@@ -30,13 +30,16 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly JwtTokenService _jwtService;
         private readonly IConfiguration _config;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILogger<LoginModel> logger, IConfiguration config)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILogger<LoginModel> logger, JwtTokenService jwtService,
+                  IConfiguration config)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _logger = logger;
+            _jwtService = jwtService;
             _config = config;
         }
 
@@ -117,51 +120,40 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-            //returnUrl ??= Url.Content("~/");
-            //ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
-            returnUrl = returnUrl ?? Url.Content("~/");
+            returnUrl ??= Url.Content("~/");
 
             if (ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var userName = Input.Email;// By default, assume username is entered
+                var userName = Input.Email;
 
                 if (IsValidEmail(Input.Email))
                 {
-                    // If email is entered - search for user and get his UserName
-                    var user = await _userManager.FindByEmailAsync(Input.Email);
-                    if (user != null)
-                    {
-                        userName = user.UserName;
-                    }
-
+                    var userByEmail = await _userManager.FindByEmailAsync(Input.Email);
+                    if (userByEmail != null)
+                        userName = userByEmail.UserName;
                 }
 
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                //var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-
-                //Trying to log in with userName (whether it was email or username)
                 var result = await _signInManager.PasswordSignInAsync(userName, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-
                 if (result.Succeeded)
                 {
                     var user = await _userManager.FindByNameAsync(userName);
 
-                    // Генерация JWT и сохранение в TempData
-                    var token = GenerateJwtToken(user);
-                    HttpContext.Session.SetString("JwtToken", token);  // сохраняем токен в сессии
+                    var accessToken = await _jwtService.GenerateJwtToken(user, 2);
+                    var refreshToken = _jwtService.GenerateRefreshToken();
+                    await _userManager.SetAuthenticationTokenAsync(user, "MyApp", "RefreshToken", refreshToken);
+
+                    // Сохраняем токены во временное хранилище
+                    HttpContext.Session.SetString("AccessToken", accessToken);
+                    HttpContext.Session.SetString("RefreshToken", refreshToken);
+                    HttpContext.Session.SetString("UserId", user.Id);
 
                     _logger.LogInformation("User logged in.");
-                    // если ReturnUrl есть и он локальный — редиректим туда
-                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                        return LocalRedirect(returnUrl);
 
-                    // иначе по умолчанию ведём на Profile
-                    return RedirectToAction("Profile", "Home");
+                    return RedirectToAction("Index", "Home"); // остаёмся в Identity‑приложении
                 }
+
+
+
                 if (result.RequiresTwoFactor)
                 {
                     return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
@@ -171,44 +163,11 @@ namespace DiplomaProjectTopAcademy.Areas.Identity.Pages.Account
                     _logger.LogWarning("User account locked out.");
                     return RedirectToPage("./Lockout");
                 }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return Page();
-                }
 
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
 
-            // If we got this far, something failed, redisplay form
             return Page();
-        }
-
-        private string GenerateJwtToken(ApplicationUser user)
-        {
-            var roles = _userManager.GetRolesAsync(user).Result;
-
-            var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? "")
-            };
-
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15),
-                signingCredentials: creds);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         //new function to check if the entered data is a valid email id or not

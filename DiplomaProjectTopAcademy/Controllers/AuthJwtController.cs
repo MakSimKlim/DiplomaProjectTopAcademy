@@ -12,16 +12,18 @@ using System.Text;
 public class AuthJwtController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IConfiguration _config;
+    private readonly JwtTokenService _jwtService;
     private readonly ILogger<AuthJwtController> _logger;
 
-    public AuthJwtController(UserManager<ApplicationUser> userManager, IConfiguration config, ILogger<AuthJwtController> logger)
+    public AuthJwtController(UserManager<ApplicationUser> userManager,
+                             JwtTokenService jwtService,
+                             ILogger<AuthJwtController> logger)
     {
         _userManager = userManager;
-        _config = config;
+        _jwtService = jwtService;
         _logger = logger;
     }
-
+    // ===== LOGIN =====
     [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
@@ -33,33 +35,120 @@ public class AuthJwtController : ControllerBase
             return Unauthorized();
         }
 
-        var roles = await _userManager.GetRolesAsync(user);
+        var accessToken = await _jwtService.GenerateJwtToken(user, 2); // 2 минуты
+        var refreshToken = _jwtService.GenerateRefreshToken();
 
-        var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email ?? "")
-        };
+        // сохраняем refresh‑токен в Identity
+        await _userManager.SetAuthenticationTokenAsync(user, "MyApp", "RefreshToken", refreshToken);
 
-        foreach (var role in roles)
+        // Сохраняем токены в куки
+        Response.Cookies.Append("BusinessJwt", accessToken, new CookieOptions
         {
-            claims.Add(new Claim(ClaimTypes.Role, role));
+            HttpOnly = true,
+            Secure = false,                 // для локалки false, для прод true
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(2) // кука живёт 2 минуты
+        });
+
+        Response.Cookies.Append("BusinessRefresh", refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,                 // для локалки false, для прод true
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(7)
+        });
+
+        _logger.LogInformation("User {Email} logged in with JWT + Refresh.", dto.Email);
+
+        return Ok(new
+        {
+            access_token = accessToken,
+            refresh_token = refreshToken,
+            user_id = user.Id
+        });
+    }
+
+    // ===== REFRESH =====
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshDto dto)
+    {
+        var user = await _userManager.FindByIdAsync(dto.UserId);
+        if (user == null)
+        {
+            _logger.LogWarning("Refresh failed: user not found");
+            return Unauthorized();
         }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var storedToken = await _userManager.GetAuthenticationTokenAsync(user, "MyApp", "RefreshToken");
+        if (storedToken != dto.RefreshToken)
+        {
+            _logger.LogWarning("Refresh failed: token mismatch");
+            return Unauthorized();
+        }
 
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(15),
-            signingCredentials: creds);
+        // Проверка подписки
+        if (user.SubscriptionEndDate == null || user.SubscriptionEndDate <= DateTime.UtcNow)
+        {
+            _logger.LogWarning("Refresh failed: subscription expired for user {UserId}", user.Id);
+            return Unauthorized();
+        }
 
-        var jwtString = new JwtSecurityTokenHandler().WriteToken(token);
+        var newAccessToken = await _jwtService.GenerateJwtToken(user, 2); // возвращаем 2 минуты при refresh
+        var newRefreshToken = _jwtService.GenerateRefreshToken();
 
-        return Ok(new { access_token = jwtString });
+        await _userManager.SetAuthenticationTokenAsync(user, "MyApp", "RefreshToken", newRefreshToken);
+
+        // обновляем куки
+        Response.Cookies.Append("BusinessJwt", newAccessToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(2) // возвращаем 2 минуты при refresh
+        });
+
+        Response.Cookies.Append("BusinessRefresh", newRefreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(7)
+        });
+
+        _logger.LogInformation("Refresh successful for user {UserId}", user.Id);
+
+        return Ok(new
+        {
+            access_token = newAccessToken,
+            refresh_token = newRefreshToken
+        });
     }
+
+    // ===== LOGOUT =====
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user != null)
+        {
+            await _userManager.RemoveAuthenticationTokenAsync(user, "MyApp", "RefreshToken");
+        }
+
+        Response.Cookies.Delete("BusinessJwt");
+        Response.Cookies.Delete("BusinessRefresh");
+        Response.Cookies.Delete(".AspNetCore.Identity.Application");
+
+        HttpContext.Session.Clear();
+
+        _logger.LogInformation("User {User} logged out, cookies cleared, refresh token invalidated.", User.Identity?.Name);
+
+        return Ok(new { message = "Logged out successfully" });
+    }
+    
 }
 
+// DTOs
 public record LoginDto(string Email, string Password);
+public record RefreshDto(string UserId, string RefreshToken);
