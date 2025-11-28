@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text.Encodings.Web;
 
 namespace DiplomaProjectTopAcademy.Controllers
@@ -42,7 +43,7 @@ namespace DiplomaProjectTopAcademy.Controllers
 
         // переход в бизнес‑модуль по кнопке
         [Authorize(Roles = "SuperAdmin,Admin,Moderator,Basic")]
-        public IActionResult RedirectToBusiness()
+        public async Task<IActionResult> RedirectToBusiness()
         {
             var accessToken = HttpContext.Session.GetString("AccessToken");
             var refreshToken = HttpContext.Session.GetString("RefreshToken");
@@ -52,6 +53,29 @@ namespace DiplomaProjectTopAcademy.Controllers
             if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(userId))
             {
                 return Content("JWT token is missing");
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(accessToken);
+
+            if (jwt.ValidTo <= DateTime.UtcNow)
+            {
+                using var client = new HttpClient();
+                var refreshEndpoint = $"{_config["Jwt:Issuer"]}/api/AuthJwt/refresh";
+
+                var response = await client.PostAsJsonAsync(refreshEndpoint, new { UserId = userId, RefreshToken = refreshToken });
+                if (!response.IsSuccessStatusCode)
+                {
+                    return Unauthorized("Refresh failed");
+                }
+
+                var json = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+                accessToken = json["access_token"];
+                refreshToken = json["refresh_token"];
+
+                HttpContext.Session.SetString("AccessToken", accessToken);
+                HttpContext.Session.SetString("RefreshToken", refreshToken);
+                HttpContext.Session.SetString("UserId", userId);
             }
 
             var redirectUrl = $"{businessUrl}?token={UrlEncoder.Default.Encode(accessToken)}&refresh={UrlEncoder.Default.Encode(refreshToken)}&userId={UrlEncoder.Default.Encode(userId)}";
